@@ -1,0 +1,21 @@
+version: 3
+
+tasks:
+  run:local:
+    dir: cmd/server
+    silent: true
+    aliases: [run]
+    cmds:
+      - APP_ENV=local go run main.go
+  
+  compose:up:
+    silent: true
+    aliases: [up]
+    cmds:
+      - docker compose up --build
+  
+  compose:down:
+    silent: true
+    aliases: [down]
+    cmds:
+      - docker compose down --remove-orphans
