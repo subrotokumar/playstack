@@ -1,5 +1,6 @@
 ---
 icon: simple/markdown
+hide: [toc]
 ---
 
 # Markdown in 5min

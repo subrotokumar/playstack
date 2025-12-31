@@ -1,0 +1,13 @@
+title = "Glitchr Gitleaks Config"
+
+[allowlist]
+paths = [
+  '''go.sum''',
+  '''vendor/'''
+]
+
+# [rules]
+#   [[rules]]
+#   id = "custom-env"
+#   description = "Block env secrets"
+#   regex = '''(?i)(api_key|secret|token|password)\s*=\s*["']?.+["']?'''

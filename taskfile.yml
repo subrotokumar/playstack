@@ -1,6 +1,11 @@
 version: 3
 
 tasks:
+  list:
+    silent: true
+    aliases: [default]
+    cmds: [task --list-all]
+
   run:local:
     dir: cmd/server
     silent: true
@@ -19,3 +24,7 @@ tasks:
     aliases: [down]
     cmds:
       - docker compose down --remove-orphans
+  
+  docs:
+    silent: true
+    cmds: [uv run zensical serve]

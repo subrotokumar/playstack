@@ -1,5 +1,6 @@
 ---
 icon: lucide/rocket
+hide: [toc]
 ---
 
 # Get started
