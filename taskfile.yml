@@ -4,9 +4,10 @@ dotenv:
   - .env
 
 tasks:
-  list:
-    aliases: [default]
+  default:
+    aliases: [list]
     silent: true
+    desc: "List all available tasks"
     cmds:
       - task --list-all
 
@@ -16,30 +17,66 @@ tasks:
     aliases: [run]
     env:
       APP_ENV: local
+    desc: "Run the Go server locally with APP_ENV=local"
     cmds:
       - go run main.go
 
   compose:up:
     silent: true
     aliases: [up]
+    desc: "Start Docker Compose stack with build"
     cmds:
       - docker compose up --build
 
   compose:down:
     silent: true
     aliases: [down]
+    desc: "Stop Docker Compose stack and remove orphan containers"
     cmds:
       - docker compose down --remove-orphans
 
   docs:
     silent: true
-    cmds:
-      - uv run zensical serve
+    desc: "Serve local documentation site"
+    cmds: [uv run zensical serve]
   
   encrypt:
     silent: true
-    cmds: [sops -e -i .env, sops -e -i terraform/terraform.tfvars]
+    desc: "Encrypt .env and terraform.tfvars files"
+    cmds: [sops -e -i .env, sops -e -i terraform/environments/terraform.tfvars]
 
   decrypt:
     silent: true
-    cmds: [sops -d -i .env, sops -d -i terraform/terraform.tfvars]
+    desc: "Decrypt .env and terraform.tfvars files"
+    cmds: [sops -d -i .env, sops -d -i terraform/environments/terraform.tfvars]
+
+  tf:plan:
+    silent: true
+    desc: "Generate Terraform/OpenTofu plan for the environment"
+    dir: terraform/environments
+    cmds: [tofu plan]
+
+  tf:apply:
+    silent: true
+    dir: terraform/environments
+    desc: "Apply Terraform/OpenTofu plan to the environment"
+    cmds: [tofu apply]
+
+  tf:destroy:
+    silent: true
+    dir: terraform/environments
+    desc: "Destroy Terraform/OpenTofu managed infrastructure"
+    cmds: [tofu destroy]
+
+  tf:validate:
+    silent: true
+    dir: terraform/environments
+    desc: "Validate Terraform/OpenTofu configuration"
+    cmds: [tofu validate]
+
+  tf:init:
+    internal: true
+    silent: true
+    dir: terraform
+    desc: "Initialize Terraform/OpenTofu with remote backend"
+    cmds: [glab opentofu init -R 'subrotokumar/glitchr' 'glitchr' -d environments]
