@@ -1,30 +1,45 @@
-version: 3
+version: '3'
+
+dotenv:
+  - .env
 
 tasks:
   list:
-    silent: true
     aliases: [default]
-    cmds: [task --list-all]
+    silent: true
+    cmds:
+      - task --list-all
 
   run:local:
     dir: cmd/server
     silent: true
     aliases: [run]
+    env:
+      APP_ENV: local
     cmds:
-      - APP_ENV=local go run main.go
-  
+      - go run main.go
+
   compose:up:
     silent: true
     aliases: [up]
     cmds:
       - docker compose up --build
-  
+
   compose:down:
     silent: true
     aliases: [down]
     cmds:
       - docker compose down --remove-orphans
-  
+
   docs:
     silent: true
-    cmds: [uv run zensical serve]
+    cmds:
+      - uv run zensical serve
+  
+  encrypt:
+    silent: true
+    cmds: [sops -e -i .env, sops -e -i terraform/terraform.tfvars]
+
+  decrypt:
+    silent: true
+    cmds: [sops -d -i .env, sops -d -i terraform/terraform.tfvars]
