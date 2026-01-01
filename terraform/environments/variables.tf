@@ -1,5 +1,5 @@
 variable "app_name" {
-    type = string
+  type = string
 }
 
 variable "environment" {
@@ -12,12 +12,16 @@ variable "aws_region" {
   type        = string
 }
 
-variable "bucket_name" {
-  description = "S3 bucket name"
-  type        = string
-}
-
 variable "app_version" {
   description = "AWS region"
   type        = string
+}
+
+
+variable "user_pool" {
+  type = string
+}
+
+variable "user_pool_client" {
+  type = string
 }
