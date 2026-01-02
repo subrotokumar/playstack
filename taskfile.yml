@@ -14,12 +14,10 @@ tasks:
   run:local:
     dir: cmd/server
     silent: true
-    aliases: [run]
-    env:
-      APP_ENV: local
+    aliases: [run, backend]
     desc: "Run the Go server locally with APP_ENV=local"
-    cmds:
-      - go run main.go
+    cmds: 
+    - go run main.go
 
   compose:up:
     silent: true
@@ -39,6 +37,10 @@ tasks:
     silent: true
     desc: "Serve local documentation site"
     cmds: [uv run zensical serve]
+  
+  clean:
+    silent: true
+    cmds: [rm -rf site .venv tmp]
   
   encrypt:
     silent: true
@@ -81,8 +83,17 @@ tasks:
     cmds: [tofu output]
   
   tf:init:
-    internal: true
     silent: true
-    dir: terraform
+    dir: terraform/environments
     desc: "Initialize Terraform/OpenTofu with remote backend"
-    cmds: [glab opentofu init -R 'subrotokumar/glitchr' 'glitchr' -d environments]
+    cmds: 
+    - |
+      tofu init \
+      -backend-config="address=https://gitlab.com/api/v4/projects/$GITLAB_PROJECT_ID/terraform/state/$TF_STATE_NAME" \
+      -backend-config="lock_address=https://gitlab.com/api/v4/projects/$GITLAB_PROJECT_ID/terraform/state/$TF_STATE_NAME/lock" \
+      -backend-config="unlock_address=https://gitlab.com/api/v4/projects/$GITLAB_PROJECT_ID/terraform/state/$TF_STATE_NAME/lock" \
+      -backend-config="username=$GITLAB_USERNAME" \
+      -backend-config="password=$GITLAB_ACCESS_TOKEN" \
+      -backend-config="lock_method=POST" \
+      -backend-config="unlock_method=DELETE" \
+      -backend-config="retry_wait_min=5"

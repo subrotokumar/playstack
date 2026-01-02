@@ -6,6 +6,7 @@ services:
       dockerfile: .docker/backend.local.dockerfile
     ports:
       - "8080:8080"
+      - "2121:2121"
     environment:
       - DATABASE_URL=postgresql://admin:password@db:5432/glitchr
       - APP_NAME=glitch:local
