@@ -6,16 +6,17 @@ tmp_dir = "tmp"
 
 [build]
   args_bin = []
-  cmd = ""
+  bin = "./tmp/main"
+  cmd = "go build -o ./tmp/main ./cmd/server"
   delay = 1000
-  entrypoint = ["go", "version", "&&", "cd", "cmd/server", "&&", "APP_ENV=local", "go", "run", "main.go"]
+  entrypoint = ["./tmp/main"]
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   exclude_file = []
   exclude_regex = ["_test.go"]
   exclude_unchanged = false
   follow_symlink = false
   full_bin = ""
-  include_dir = ["cmd/server", "internal"]
+  include_dir = []
   include_ext = ["go", "tpl", "tmpl", "html"]
   include_file = []
   kill_delay = "0s"

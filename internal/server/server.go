@@ -1,15 +1,14 @@
 package server
 
 import (
+	"log"
+	"net/http"
 	"os"
-	"strconv"
 
 	validation "github.com/go-playground/validator/v10"
+	"github.com/labstack/echo/v4"
+	"gitlab.com/subrotokumar/glitchr/internal/config"
 	"gitlab.com/subrotokumar/glitchr/internal/service"
-	"gofr.dev/pkg/gofr"
-	api "gofr.dev/pkg/gofr"
-	"gofr.dev/pkg/gofr/http"
-	"gofr.dev/pkg/gofr/http/response"
 )
 
 const (
@@ -31,24 +30,40 @@ type (
 		Error   any    `json:"error,omitempty"`
 	}
 	Server struct {
-		port int
-		idp  service.IdentityProvider
+		cfg     config.Config
+		idp     service.IdentityProvider
+		handler *http.Server
 	}
 	Ctx struct {
-		*gofr.Context
+		echo.Context
 	}
 )
 
-func NewServer() *api.App {
-	_ = http.ErrorPanicRecovery{}
+func NewHTTPServer() *Server {
 	validator = validation.New()
-	port, _ := strconv.Atoi(os.Getenv("PORT"))
-	NewServer := &Server{
-		port: port,
-		idp:  service.NewIndentityProvider(),
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
 	}
-	server := NewServer.HttpServer()
-	return server
+
+	cfg, err := config.ConfigFromEnv()
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	srv := &Server{
+		cfg: cfg,
+		idp: service.NewIndentityProvider(),
+	}
+	srv.handler = &http.Server{
+		Addr:    "0.0.0.0:" + port,
+		Handler: srv.Mux(),
+	}
+	return srv
+}
+
+func (s *Server) Run() error {
+	return s.handler.ListenAndServe()
 }
 
 func (ctx *Ctx) Body(v any) error {
@@ -59,16 +74,4 @@ func (ctx *Ctx) Body(v any) error {
 		return err
 	}
 	return nil
-}
-
-func (ctx *Ctx) Json(res any) (any, error) {
-	return response.Response{
-		Data: res,
-	}, nil
-}
-
-func (ctx *Ctx) JsonWithErr(res any, httpError HttpError) (any, error) {
-	return response.Response{
-		Data: res,
-	}, nil
 }
