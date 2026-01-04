@@ -11,13 +11,22 @@ tasks:
     cmds:
       - task --list-all
 
-  run:local:
-    dir: cmd/server
+  backend:build:
     silent: true
-    aliases: [run, backend]
-    desc: "Run the Go server locally with APP_ENV=local"
-    cmds: 
-    - go run main.go
+    desc: "Build executable for backend"
+    cmds: [go build -o ./tmp/main ./cmd/server]
+
+  backend:run:
+    silent: true
+    desc: "Run the Go server locally"
+    cmds: [go run ./cmd/server]
+
+  backend:dev:
+    dir: .
+    silent: true
+    aliases: [backend, air]
+    desc: "Run the Go server with development mode"
+    cmds: [air]
 
   compose:up:
     silent: true
@@ -97,3 +106,14 @@ tasks:
       -backend-config="lock_method=POST" \
       -backend-config="unlock_method=DELETE" \
       -backend-config="retry_wait_min=5"
+        
+  swagger:init:
+    desc: Generate Swagger documation of Gen Service
+    cmds:
+      - |
+        swag init \
+        --parseInternal \
+        --packageName swagger \
+        --dir ./internal/server \
+        -g ../../cmd/server/main.go \
+        -o ./api

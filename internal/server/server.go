@@ -2,12 +2,12 @@ package server
 
 import (
 	"log"
+	"log/slog"
 	"net/http"
-	"os"
 
 	validation "github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/subrotokumar/glitchr/internal/config"
+	"gitlab.com/subrotokumar/glitchr/internal/core"
 	"gitlab.com/subrotokumar/glitchr/internal/service"
 )
 
@@ -24,15 +24,11 @@ var (
 )
 
 type (
-	ResponseEntity struct {
-		Data    any    `json:"data,omitempty"`
-		Message string `json:"message,omitempty"`
-		Error   any    `json:"error,omitempty"`
-	}
 	Server struct {
-		cfg     config.Config
+		cfg     core.Config
 		idp     service.IdentityProvider
 		handler *http.Server
+		log     *slog.Logger
 	}
 	Ctx struct {
 		echo.Context
@@ -40,33 +36,34 @@ type (
 )
 
 func NewHTTPServer() *Server {
-	validator = validation.New()
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
+	validator = validation.New(validation.WithRequiredStructEnabled())
 
-	cfg, err := config.ConfigFromEnv()
+	cfg, err := core.ConfigFromEnv()
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 
+	logger := core.NewLogger(cfg.App.Env, cfg.App.Name, nil)
+
 	srv := &Server{
 		cfg: cfg,
-		idp: service.NewIndentityProvider(),
+		idp: service.NewIndentityProvider(cfg.Aws.Region, cfg.Cognito.ClientID, cfg.Cognito.ClientSecret),
+		log: logger,
 	}
 	srv.handler = &http.Server{
-		Addr:    "0.0.0.0:" + port,
+		Addr:    cfg.App.Host + ":" + cfg.App.Port,
 		Handler: srv.Mux(),
 	}
+
 	return srv
 }
 
 func (s *Server) Run() error {
+	s.log.Info("Server running at " + s.cfg.App.Host + ":" + s.cfg.App.Port)
 	return s.handler.ListenAndServe()
 }
 
-func (ctx *Ctx) Body(v any) error {
+func RequestBody(ctx echo.Context, v any) error {
 	if err := ctx.Bind(v); err != nil {
 		return err
 	}

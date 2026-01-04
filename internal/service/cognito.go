@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
+	"log/slog"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -20,18 +20,19 @@ type IdentityProvider struct {
 	ClientSecret  string
 }
 
-func NewIndentityProvider() IdentityProvider {
+func NewIndentityProvider(region, clientId, clientSecret string) IdentityProvider {
 	ctx := context.Background()
-	sdkConfig, err := config.LoadDefaultConfig(ctx)
+	sdkConfig, err := config.LoadDefaultConfig(ctx, config.WithRegion(region))
 	if err != nil {
 		fmt.Println("Couldn't load default configuration. Have you set up your AWS account?")
 		log.Fatal(err)
 	}
 	cognitoClient := cognitoidentityprovider.NewFromConfig(sdkConfig)
+	slog.Info("Cognito", "Id", clientId, "Secret", clientSecret)
 	return IdentityProvider{
 		CognitoClient: cognitoClient,
-		ClientId:      os.Getenv("COGNITO_CLIENT_ID"),
-		ClientSecret:  os.Getenv("COGNITO_CLIENT_SECRET"),
+		ClientId:      clientId,
+		ClientSecret:  clientSecret,
 	}
 }
 
@@ -118,10 +119,9 @@ func (idp *IdentityProvider) Login(
 
 func (idp *IdentityProvider) RefreshAccessToken(
 	ctx context.Context,
-	email, refreshToken string,
+	username, refreshToken string,
 ) (string, error) {
-
-	secretHash := utility.GetSecretHash(email, idp.ClientId, idp.ClientSecret)
+	secretHash := utility.GetSecretHash(username, idp.ClientId, idp.ClientSecret)
 
 	out, err := idp.CognitoClient.InitiateAuth(ctx, &cognitoidentityprovider.InitiateAuthInput{
 		ClientId: aws.String(idp.ClientId),
@@ -140,4 +140,20 @@ func (idp *IdentityProvider) RefreshAccessToken(
 	}
 
 	return aws.ToString(out.AuthenticationResult.AccessToken), nil
+}
+
+func (idp *IdentityProvider) ChangePassword(
+	ctx context.Context,
+	accessToken, previousPassword, proposedPassword string,
+) error {
+	_, err := idp.CognitoClient.ChangePassword(ctx, &cognitoidentityprovider.ChangePasswordInput{
+		AccessToken:      aws.String(accessToken),
+		PreviousPassword: aws.String(previousPassword),
+		ProposedPassword: aws.String(proposedPassword),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

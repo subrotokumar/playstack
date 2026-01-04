@@ -4,7 +4,7 @@ resource "aws_cognito_user_pool" "user_pool" {
   username_attributes = ["email"]
 
   admin_create_user_config {
-    allow_admin_create_user_only = true
+    allow_admin_create_user_only = false
   }
 
   schema {
@@ -20,13 +20,6 @@ resource "aws_cognito_user_pool" "user_pool" {
     required            = true
     mutable             = true
   }
-
-  # schema {
-  #   name                = "birthdate"
-  #   attribute_data_type = "String"
-  #   required            = true
-  #   mutable             = true
-  # }
 
   auto_verified_attributes = ["email"]
 
