@@ -1,44 +1,20 @@
-package service
+package idp
 
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
-	"gitlab.com/subrotokumar/glitchr/internal/utility"
 )
-
-type IdentityProvider struct {
-	CognitoClient *cognitoidentityprovider.Client
-	ClientId      string
-	ClientSecret  string
-}
-
-func NewIndentityProvider(region, clientId, clientSecret string) IdentityProvider {
-	ctx := context.Background()
-	sdkConfig, err := config.LoadDefaultConfig(ctx, config.WithRegion(region))
-	if err != nil {
-		fmt.Println("Couldn't load default configuration. Have you set up your AWS account?")
-		log.Fatal(err)
-	}
-	cognitoClient := cognitoidentityprovider.NewFromConfig(sdkConfig)
-	return IdentityProvider{
-		CognitoClient: cognitoClient,
-		ClientId:      clientId,
-		ClientSecret:  clientSecret,
-	}
-}
 
 func (idp *IdentityProvider) SignUp(
 	ctx context.Context,
 	name, email, password string,
 ) (bool, string, error) {
-	secretHash := utility.GetSecretHash(email, idp.ClientId, idp.ClientSecret)
+	secretHash := GetSecretHash(email, idp.ClientId, idp.ClientSecret)
 
 	out, err := idp.CognitoClient.SignUp(ctx, &cognitoidentityprovider.SignUpInput{
 		ClientId:   aws.String(idp.ClientId),
@@ -66,7 +42,7 @@ func (idp *IdentityProvider) ConfirmSignUp(
 	ctx context.Context,
 	email, otp string,
 ) error {
-	secretHash := utility.GetSecretHash(email, idp.ClientId, idp.ClientSecret)
+	secretHash := GetSecretHash(email, idp.ClientId, idp.ClientSecret)
 
 	_, err := idp.CognitoClient.ConfirmSignUp(ctx, &cognitoidentityprovider.ConfirmSignUpInput{
 		ClientId:         aws.String(idp.ClientId),
@@ -89,7 +65,7 @@ func (idp *IdentityProvider) Login(
 	email, password string,
 ) (*AuthTokens, error) {
 
-	secretHash := utility.GetSecretHash(email, idp.ClientId, idp.ClientSecret)
+	secretHash := GetSecretHash(email, idp.ClientId, idp.ClientSecret)
 
 	out, err := idp.CognitoClient.InitiateAuth(ctx, &cognitoidentityprovider.InitiateAuthInput{
 		ClientId: aws.String(idp.ClientId),
@@ -119,7 +95,7 @@ func (idp *IdentityProvider) RefreshAccessToken(
 	ctx context.Context,
 	username, refreshToken string,
 ) (string, error) {
-	secretHash := utility.GetSecretHash(username, idp.ClientId, idp.ClientSecret)
+	secretHash := GetSecretHash(username, idp.ClientId, idp.ClientSecret)
 
 	out, err := idp.CognitoClient.InitiateAuth(ctx, &cognitoidentityprovider.InitiateAuthInput{
 		ClientId: aws.String(idp.ClientId),

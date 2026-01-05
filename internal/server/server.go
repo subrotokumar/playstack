@@ -8,7 +8,7 @@ import (
 	validation "github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/subrotokumar/glitchr/internal/core"
-	"gitlab.com/subrotokumar/glitchr/internal/service"
+	idp "gitlab.com/subrotokumar/glitchr/pkg/idp"
 )
 
 const (
@@ -26,7 +26,7 @@ var (
 type (
 	Server struct {
 		cfg     core.Config
-		idp     service.IdentityProvider
+		idp     idp.IdentityProvider
 		handler *http.Server
 		log     *slog.Logger
 	}
@@ -47,7 +47,7 @@ func NewHTTPServer() *Server {
 
 	srv := &Server{
 		cfg: cfg,
-		idp: service.NewIndentityProvider(cfg.Aws.Region, cfg.Cognito.ClientID, cfg.Cognito.ClientSecret),
+		idp: idp.NewIndentityProvider(cfg.Aws.Region, cfg.Cognito.ClientID, cfg.Cognito.ClientSecret),
 		log: logger,
 	}
 	srv.handler = &http.Server{

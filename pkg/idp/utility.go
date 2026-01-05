@@ -1,4 +1,4 @@
-package utility
+package idp
 
 import (
 	"crypto/hmac"

@@ -36,7 +36,7 @@ func NewLogger(env Env, service string, level *string) *slog.Logger {
 		opts.Level = slog.LevelDebug
 		handler = slog.NewTextHandler(os.Stdout, opts)
 
-	default: // staging + production
+	default:
 		handler = slog.NewJSONHandler(os.Stdout, opts)
 	}
 	svc := fmt.Sprintf("%s:%s", service, env)
