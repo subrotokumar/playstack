@@ -135,7 +135,7 @@ tasks:
         --packageName swagger \
         --dir ./backend/server \
         -g ../main.go \
-        -o ./backend/api
+        -o ./backend/swagger
 
   work:sync:
     cmds: 

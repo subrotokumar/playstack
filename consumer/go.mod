@@ -8,7 +8,10 @@ replace (
 	gitlab.com/subrotokumar/glitchr/pkg/queue => ../libs/queue
 )
 
-require gitlab.com/subrotokumar/glitchr/pkg/queue v0.0.0-00010101000000-000000000000
+require (
+	gitlab.com/subrotokumar/glitchr/pkg/core v0.0.0-00010101000000-000000000000
+	gitlab.com/subrotokumar/glitchr/pkg/queue v0.0.0-00010101000000-000000000000
+)
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.41.0 // indirect
@@ -26,4 +29,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.12 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.5 // indirect
 	github.com/aws/smithy-go v1.24.0 // indirect
+	github.com/kelseyhightower/envconfig v1.4.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

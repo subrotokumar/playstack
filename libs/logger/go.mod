@@ -7,3 +7,8 @@ go 1.25.5
 replace gitlab.com/subrotokumar/glitchr/pkg/core => ../core
 
 require gitlab.com/subrotokumar/glitchr/pkg/core v0.0.0-00010101000000-000000000000
+
+require (
+	github.com/kelseyhightower/envconfig v1.4.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
+)

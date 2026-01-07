@@ -1,11 +1,7 @@
 package config
 
 import (
-	"os"
-
-	"github.com/kelseyhightower/envconfig"
 	"gitlab.com/subrotokumar/glitchr/pkg/core"
-	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -32,25 +28,4 @@ type Config struct {
 		ClientID     string `yaml:"client_id" envconfig:"COGNITO_CLIENT_ID"`
 		ClientSecret string `yaml:"client_secret" envconfig:"COGNITO_CLIENT_SECRET"`
 	} `yaml:"cognito"`
-}
-
-func ConfigFromFile(path string) (cfg Config, err error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return cfg, err
-	}
-	defer f.Close()
-
-	decoder := yaml.NewDecoder(f)
-	if err = decoder.Decode(&cfg); err != nil {
-		return cfg, err
-	}
-	return cfg, nil
-}
-
-func ConfigFromEnv() (cfg Config, err error) {
-	if err = envconfig.Process("", &cfg); err != nil {
-		return cfg, err
-	}
-	return cfg, nil
 }

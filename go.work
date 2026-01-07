@@ -1,0 +1,11 @@
+go 1.25.5
+
+use (
+	./backend
+	./consumer
+	./libs/core
+	./libs/idp
+	./libs/logger
+	./libs/queue
+	./libs/storage
+)

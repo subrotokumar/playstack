@@ -8,6 +8,7 @@ import (
 	validation "github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/subrotokumar/glitchr/backend/config"
+	"gitlab.com/subrotokumar/glitchr/pkg/core"
 	idp "gitlab.com/subrotokumar/glitchr/pkg/idp"
 	"gitlab.com/subrotokumar/glitchr/pkg/logger"
 )
@@ -39,9 +40,10 @@ type (
 func NewHTTPServer() *Server {
 	validator = validation.New(validation.WithRequiredStructEnabled())
 
-	cfg, err := config.ConfigFromEnv()
+	cfg := config.Config{}
+	err := core.ConfigFromEnv(&cfg)
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Fatalf("Failed to load config: %s", err.Error())
 	}
 
 	logger := logger.New(cfg.App.Env, cfg.App.Name, nil)
