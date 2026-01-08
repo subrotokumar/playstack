@@ -8,8 +8,11 @@ import (
 	"time"
 )
 
-func NewLogger(env Env, service string, level *string) *slog.Logger {
+type Logger struct {
+	*slog.Logger
+}
 
+func NewLogger(env Env, service string, level *string) *Logger {
 	slogLevel := slog.LevelInfo
 	if level != nil {
 		slogLevel = parseLevel(*level)
@@ -46,9 +49,10 @@ func NewLogger(env Env, service string, level *string) *slog.Logger {
 		handler = slog.NewJSONHandler(os.Stdout, opts)
 	}
 	svc := fmt.Sprintf("%s:%s", service, env)
-	return slog.New(handler).With(
+	slog := slog.New(handler).With(
 		slog.String("app", svc),
 	)
+	return &Logger{slog}
 }
 
 func parseLevel(level string) slog.Level {
@@ -64,4 +68,9 @@ func parseLevel(level string) slog.Level {
 	default:
 		return slog.LevelInfo
 	}
+}
+
+func (l *Logger) Fatal(msg string, args ...any) {
+	l.Logger.Error(msg, args...)
+	os.Exit(1)
 }

@@ -28,6 +28,15 @@ tasks:
     desc: "Run the Go server with development mode"
     cmds: [air]
 
+  transcoder:buildx:
+    silent: true
+    desc: Build docker images of transcoder
+    vars:
+      tag: latest
+    cmds: 
+      - docker buildx build . -t transcoder:{{.tag}} -f docker/transcoder.dockerfile
+    
+
   compose:up:
     silent: true
     aliases: [up]
@@ -141,7 +150,6 @@ tasks:
     cmds: 
       - cd libs/core && go mod tidy
       - cd libs/idp && go mod tidy
-      - cd libs/logger && go mod tidy
       - cd libs/queue && go mod tidy
       - cd libs/storage && go mod tidy
       - cd backend && go mod tidy

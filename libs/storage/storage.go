@@ -29,3 +29,7 @@ func NewStorageProvider(region string) *Storage {
 		presignClient: presignClient,
 	}
 }
+
+func (s *Storage) Client() *s3.Client {
+	return s.client
+}

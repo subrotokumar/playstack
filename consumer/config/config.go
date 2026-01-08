@@ -1,7 +1,7 @@
 package config
 
 import (
-	"gitlab.com/subrotokumar/glitchr/pkg/core"
+	"gitlab.com/subrotokumar/glitchr/libs/core"
 )
 
 type Config struct {

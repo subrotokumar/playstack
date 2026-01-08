@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"gitlab.com/subrotokumar/glitchr/consumer/config"
-	"gitlab.com/subrotokumar/glitchr/pkg/core"
-	"gitlab.com/subrotokumar/glitchr/pkg/queue"
+	"gitlab.com/subrotokumar/glitchr/libs/core"
+	"gitlab.com/subrotokumar/glitchr/libs/queue"
 )
 
 func main() {

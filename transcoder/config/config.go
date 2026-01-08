@@ -2,13 +2,12 @@ package config
 
 import (
 	"gitlab.com/subrotokumar/glitchr/libs/core"
+	"gitlab.com/subrotokumar/glitchr/libs/storage"
 )
 
 type Config struct {
 	App struct {
 		Name string   `yaml:"name" envconfig:"SERVICE_NAME" default:"glitchr"`
-		Port string   `yaml:"port" envconfig:"SERVICE_PORT" default:"8080"`
-		Host string   `yaml:"host" envconfig:"SERVICE_HOST" default:"0.0.0.0"`
 		Env  core.Env `yaml:"env" envconfig:"SERVICE_ENV" default:"dev"`
 	} `yaml:"app"`
 	Log struct {
@@ -22,10 +21,13 @@ type Config struct {
 		DbName   string `yaml:"name" envconfig:"DB_NAME"`
 	} `yaml:"database"`
 	Aws struct {
-		Region string `yaml:"region" envconfig:"AWS_REGION" default:"ap-south-1"`
+		Region          string `yaml:"region" envconfig:"AWS_REGION" default:"ap-south-1"`
+		AccessKeyID     string `yaml:"secret_id" envconfig:"AWS_ACCESS_KEY_ID"`
+		SecretAccessKey string `yaml:"secret_key" envconfig:"AWS_SECRET_ACCESS_KEY"`
 	} `yaml:"aws"`
-	Cognito struct {
-		ClientID     string `yaml:"client_id" envconfig:"COGNITO_CLIENT_ID"`
-		ClientSecret string `yaml:"client_secret" envconfig:"COGNITO_CLIENT_SECRET"`
-	} `yaml:"cognito"`
+	S3 struct {
+		Bucket string `yaml:"bucket" envconfig:"S3_BUCKET"`
+		Key    string `yaml:"key" envconfig:"S3_KEY"`
+	} `yaml:"s3"`
+	Events storage.S3Event `yaml:"events" envconfig:"SQS_MESSAGE"`
 }

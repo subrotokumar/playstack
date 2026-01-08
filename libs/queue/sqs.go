@@ -2,18 +2,18 @@ package queue
 
 import (
 	"context"
-	"log/slog"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"gitlab.com/subrotokumar/glitchr/libs/core"
 )
 
 type Queue struct {
 	SqsClient *sqs.Client
-	log       *slog.Logger
+	log       core.Logger
 }
 
-func NewMessageQueue(region string, log *slog.Logger) *Queue {
+func NewMessageQueue(region string, log *core.Logger) *Queue {
 	ctx := context.Background()
 	sdkConfig, err := config.LoadDefaultConfig(ctx, config.WithRegion(region))
 	if err != nil {

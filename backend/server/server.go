@@ -2,15 +2,13 @@ package server
 
 import (
 	"log"
-	"log/slog"
 	"net/http"
 
 	validation "github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/subrotokumar/glitchr/backend/config"
-	"gitlab.com/subrotokumar/glitchr/pkg/core"
-	idp "gitlab.com/subrotokumar/glitchr/pkg/idp"
-	"gitlab.com/subrotokumar/glitchr/pkg/logger"
+	"gitlab.com/subrotokumar/glitchr/libs/core"
+	idp "gitlab.com/subrotokumar/glitchr/libs/idp"
 )
 
 const (
@@ -30,7 +28,7 @@ type (
 		cfg     config.Config
 		idp     idp.IdentityProvider
 		handler *http.Server
-		log     *slog.Logger
+		log     *core.Logger
 	}
 	Ctx struct {
 		echo.Context
@@ -46,7 +44,7 @@ func NewHTTPServer() *Server {
 		log.Fatalf("Failed to load config: %s", err.Error())
 	}
 
-	logger := logger.New(cfg.App.Env, cfg.App.Name, nil)
+	logger := core.NewLogger(cfg.App.Env, cfg.App.Name, nil)
 
 	srv := &Server{
 		cfg: cfg,

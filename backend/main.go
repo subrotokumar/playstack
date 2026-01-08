@@ -1,7 +1,8 @@
 package main
 
 import (
-	"github.com/labstack/gommon/log"
+	"log"
+
 	"gitlab.com/subrotokumar/glitchr/backend/server"
 )
 
@@ -24,6 +25,6 @@ func main() {
 	svc := server.NewHTTPServer()
 	err := svc.Run()
 	if err != nil {
-		log.Errorf("%s", err.Error())
+		log.Fatalf("%s", err.Error())
 	}
 }
