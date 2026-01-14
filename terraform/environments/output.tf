@@ -39,3 +39,7 @@ output "bucket_trigger_queue_arn" {
 output "bucket_trigger_queue_url" {
   value = module.sqs.sqs_queue_url
 }
+
+output "image_registry_url" {
+  value = module.ecr_image_registry.registry_url
+}

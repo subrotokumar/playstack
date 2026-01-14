@@ -31,3 +31,10 @@ module "s3_notification" {
   queue_arn = module.sqs.sqs_queue_arn
   bucket    = module.raw_media_bucket.bucket
 }
+
+
+module "ecr_image_registry" {
+  source = "../modules/ecr"
+
+  image_registry = var.image_registry
+} 

@@ -87,3 +87,31 @@ variable "storage_trigger_queue" {
     error_message = "storage_trigger_queue must not be empty."
   }
 }
+
+
+variable "image_registry" {
+  type        = string
+  description = "Name of the container image registry (for example, an Amazon ECR repository name)."
+
+  validation {
+    condition     = length(var.image_registry) > 0
+    error_message = "Registry name must not be empty."
+  }
+}
+
+variable "image_mutable" {
+  type        = string
+  description = "Image tag mutability setting for the registry. Allowed values are MUTABLE or IMMUTABLE."
+  default     = "MUTABLE"
+
+  validation {
+    condition     = contains(["MUTABLE", "IMMUTABLE"], var.image_mutable)
+    error_message = "image_mutable must be either 'MUTABLE' or 'IMMUTABLE'."
+  }
+}
+
+variable "image_scan_on_push" {
+  type        = bool
+  description = "Whether to enable automatic image vulnerability scanning when an image is pushed to the registry."
+  default     = true
+}
