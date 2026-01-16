@@ -1,0 +1,185 @@
+package db
+
+import (
+	"database/sql/driver"
+	"fmt"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+type JobStatus string
+
+const (
+	JobStatusPENDING JobStatus = "PENDING"
+	JobStatusRUNNING JobStatus = "RUNNING"
+	JobStatusSUCCESS JobStatus = "SUCCESS"
+	JobStatusFAILED  JobStatus = "FAILED"
+)
+
+func (e *JobStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = JobStatus(s)
+	case string:
+		*e = JobStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for JobStatus: %T", src)
+	}
+	return nil
+}
+
+type NullJobStatus struct {
+	JobStatus JobStatus `json:"job_status"`
+	Valid     bool      `json:"valid"` // Valid is true if JobStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullJobStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.JobStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.JobStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullJobStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.JobStatus), nil
+}
+
+type VideoResolution string
+
+const (
+	VideoResolution240p  VideoResolution = "240p"
+	VideoResolution360p  VideoResolution = "360p"
+	VideoResolution480p  VideoResolution = "480p"
+	VideoResolution720p  VideoResolution = "720p"
+	VideoResolution1080p VideoResolution = "1080p"
+)
+
+func (e *VideoResolution) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = VideoResolution(s)
+	case string:
+		*e = VideoResolution(s)
+	default:
+		return fmt.Errorf("unsupported scan type for VideoResolution: %T", src)
+	}
+	return nil
+}
+
+type NullVideoResolution struct {
+	VideoResolution VideoResolution `json:"video_resolution"`
+	Valid           bool            `json:"valid"` // Valid is true if VideoResolution is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullVideoResolution) Scan(value interface{}) error {
+	if value == nil {
+		ns.VideoResolution, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.VideoResolution.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullVideoResolution) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.VideoResolution), nil
+}
+
+type VideoStatus string
+
+const (
+	VideoStatusUPLOADED   VideoStatus = "UPLOADED"
+	VideoStatusPROCESSING VideoStatus = "PROCESSING"
+	VideoStatusREADY      VideoStatus = "READY"
+	VideoStatusFAILED     VideoStatus = "FAILED"
+)
+
+func (e *VideoStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = VideoStatus(s)
+	case string:
+		*e = VideoStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for VideoStatus: %T", src)
+	}
+	return nil
+}
+
+type NullVideoStatus struct {
+	VideoStatus VideoStatus `json:"video_status"`
+	Valid       bool        `json:"valid"` // Valid is true if VideoStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullVideoStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.VideoStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.VideoStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullVideoStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.VideoStatus), nil
+}
+
+type Manifest struct {
+	ID        uuid.UUID        `json:"id"`
+	VideoID   uuid.UUID        `json:"video_id"`
+	S3Key     string           `json:"s3_key"`
+	Type      string           `json:"type"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+}
+
+type TranscodingJob struct {
+	ID           uuid.UUID        `json:"id"`
+	VideoID      uuid.UUID        `json:"video_id"`
+	Status       JobStatus        `json:"status"`
+	ErrorMessage pgtype.Text      `json:"error_message"`
+	CreatedAt    pgtype.Timestamp `json:"created_at"`
+	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
+}
+
+type User struct {
+	ID         uuid.UUID        `json:"id"`
+	CognitoSub string           `json:"cognito_sub"`
+	Email      pgtype.Text      `json:"email"`
+	CreatedAt  pgtype.Timestamp `json:"created_at"`
+}
+
+type Video struct {
+	ID            uuid.UUID        `json:"id"`
+	UserID        uuid.UUID        `json:"user_id"`
+	Title         string           `json:"title"`
+	Status        VideoStatus      `json:"status"`
+	OriginalS3Key string           `json:"original_s3_key"`
+	DurationSec   pgtype.Int4      `json:"duration_sec"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+}
+
+type VideoRendition struct {
+	ID          uuid.UUID        `json:"id"`
+	VideoID     uuid.UUID        `json:"video_id"`
+	Resolution  VideoResolution  `json:"resolution"`
+	BitrateKbps int32            `json:"bitrate_kbps"`
+	S3Key       string           `json:"s3_key"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+}

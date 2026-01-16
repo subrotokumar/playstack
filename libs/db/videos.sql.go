@@ -1,0 +1,315 @@
+// source: videos.sql
+
+package db
+
+import (
+	"context"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+const createVideo = `-- name: CreateVideo :one
+INSERT INTO videos (
+    id,
+    user_id,
+    title,
+    status,
+    original_s3_key,
+    duration_sec
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+)
+RETURNING id, user_id, title, status, original_s3_key, duration_sec, created_at
+`
+
+type CreateVideoParams struct {
+	ID            uuid.UUID   `json:"id"`
+	UserID        uuid.UUID   `json:"user_id"`
+	Title         string      `json:"title"`
+	Status        VideoStatus `json:"status"`
+	OriginalS3Key string      `json:"original_s3_key"`
+	DurationSec   pgtype.Int4 `json:"duration_sec"`
+}
+
+func (q *Queries) CreateVideo(ctx context.Context, arg CreateVideoParams) (Video, error) {
+	row := q.db.QueryRow(ctx, createVideo,
+		arg.ID,
+		arg.UserID,
+		arg.Title,
+		arg.Status,
+		arg.OriginalS3Key,
+		arg.DurationSec,
+	)
+	var i Video
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Title,
+		&i.Status,
+		&i.OriginalS3Key,
+		&i.DurationSec,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const deleteVideo = `-- name: DeleteVideo :exec
+DELETE FROM videos
+WHERE id = $1
+`
+
+func (q *Queries) DeleteVideo(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteVideo, id)
+	return err
+}
+
+const getVideoByID = `-- name: GetVideoByID :one
+SELECT id, user_id, title, status, original_s3_key, duration_sec, created_at
+FROM videos
+WHERE id = $1
+`
+
+func (q *Queries) GetVideoByID(ctx context.Context, id uuid.UUID) (Video, error) {
+	row := q.db.QueryRow(ctx, getVideoByID, id)
+	var i Video
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Title,
+		&i.Status,
+		&i.OriginalS3Key,
+		&i.DurationSec,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const listStaleProcessingVideos = `-- name: ListStaleProcessingVideos :many
+SELECT id, user_id, title, status, original_s3_key, duration_sec, created_at
+FROM videos
+WHERE status = 'PROCESSING'
+  AND created_at < now() - interval '30 minutes'
+ORDER BY created_at ASC
+`
+
+func (q *Queries) ListStaleProcessingVideos(ctx context.Context) ([]Video, error) {
+	rows, err := q.db.Query(ctx, listStaleProcessingVideos)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Video{}
+	for rows.Next() {
+		var i Video
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Title,
+			&i.Status,
+			&i.OriginalS3Key,
+			&i.DurationSec,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listVideosByStatus = `-- name: ListVideosByStatus :many
+SELECT id, user_id, title, status, original_s3_key, duration_sec, created_at
+FROM videos
+WHERE status = $1
+ORDER BY created_at ASC
+`
+
+func (q *Queries) ListVideosByStatus(ctx context.Context, status VideoStatus) ([]Video, error) {
+	rows, err := q.db.Query(ctx, listVideosByStatus, status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Video{}
+	for rows.Next() {
+		var i Video
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Title,
+			&i.Status,
+			&i.OriginalS3Key,
+			&i.DurationSec,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listVideosByUser = `-- name: ListVideosByUser :many
+SELECT id, user_id, title, status, original_s3_key, duration_sec, created_at
+FROM videos
+WHERE user_id = $1
+ORDER BY created_at DESC
+`
+
+func (q *Queries) ListVideosByUser(ctx context.Context, userID uuid.UUID) ([]Video, error) {
+	rows, err := q.db.Query(ctx, listVideosByUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Video{}
+	for rows.Next() {
+		var i Video
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Title,
+			&i.Status,
+			&i.OriginalS3Key,
+			&i.DurationSec,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listVideosByUserPaginated = `-- name: ListVideosByUserPaginated :many
+SELECT id, user_id, title, status, original_s3_key, duration_sec, created_at
+FROM videos
+WHERE user_id = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type ListVideosByUserPaginatedParams struct {
+	UserID uuid.UUID `json:"user_id"`
+	Limit  int32     `json:"limit"`
+	Offset int32     `json:"offset"`
+}
+
+func (q *Queries) ListVideosByUserPaginated(ctx context.Context, arg ListVideosByUserPaginatedParams) ([]Video, error) {
+	rows, err := q.db.Query(ctx, listVideosByUserPaginated, arg.UserID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Video{}
+	for rows.Next() {
+		var i Video
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Title,
+			&i.Status,
+			&i.OriginalS3Key,
+			&i.DurationSec,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateVideoDuration = `-- name: UpdateVideoDuration :one
+UPDATE videos
+SET duration_sec = $2
+WHERE id = $1
+RETURNING id, user_id, title, status, original_s3_key, duration_sec, created_at
+`
+
+type UpdateVideoDurationParams struct {
+	ID          uuid.UUID   `json:"id"`
+	DurationSec pgtype.Int4 `json:"duration_sec"`
+}
+
+func (q *Queries) UpdateVideoDuration(ctx context.Context, arg UpdateVideoDurationParams) (Video, error) {
+	row := q.db.QueryRow(ctx, updateVideoDuration, arg.ID, arg.DurationSec)
+	var i Video
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Title,
+		&i.Status,
+		&i.OriginalS3Key,
+		&i.DurationSec,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateVideoStatus = `-- name: UpdateVideoStatus :one
+UPDATE videos
+SET status = $2
+WHERE id = $1
+RETURNING id, user_id, title, status, original_s3_key, duration_sec, created_at
+`
+
+type UpdateVideoStatusParams struct {
+	ID     uuid.UUID   `json:"id"`
+	Status VideoStatus `json:"status"`
+}
+
+func (q *Queries) UpdateVideoStatus(ctx context.Context, arg UpdateVideoStatusParams) (Video, error) {
+	row := q.db.QueryRow(ctx, updateVideoStatus, arg.ID, arg.Status)
+	var i Video
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Title,
+		&i.Status,
+		&i.OriginalS3Key,
+		&i.DurationSec,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateVideoTitle = `-- name: UpdateVideoTitle :one
+UPDATE videos
+SET title = $2
+WHERE id = $1
+RETURNING id, user_id, title, status, original_s3_key, duration_sec, created_at
+`
+
+type UpdateVideoTitleParams struct {
+	ID    uuid.UUID `json:"id"`
+	Title string    `json:"title"`
+}
+
+func (q *Queries) UpdateVideoTitle(ctx context.Context, arg UpdateVideoTitleParams) (Video, error) {
+	row := q.db.QueryRow(ctx, updateVideoTitle, arg.ID, arg.Title)
+	var i Video
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Title,
+		&i.Status,
+		&i.OriginalS3Key,
+		&i.DurationSec,
+		&i.CreatedAt,
+	)
+	return i, err
+}

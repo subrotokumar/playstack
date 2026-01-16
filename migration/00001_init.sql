@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 SELECT 'up SQL query';
 
-CREATE TYPE IF NOT EXISTS video_status AS ENUM (
+CREATE TYPE video_status AS ENUM (
     'UPLOADED',
     'PROCESSING',
     'READY',

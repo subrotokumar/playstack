@@ -2,14 +2,14 @@
 -- +goose StatementBegin
 SELECT 'up SQL query';
 
-CREATE TYPE  IF NOT EXISTS job_status AS ENUM (
+CREATE TYPE job_status AS ENUM (
     'PENDING',
     'RUNNING',
     'SUCCESS',
     'FAILED'
 );
 
-CREATE TYPE  IF NOT EXISTS video_resolution AS ENUM (
+CREATE TYPE video_resolution AS ENUM (
     '240p',
     '360p',
     '480p',
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS manifests (
     id UUID PRIMARY KEY, 
     video_id UUID NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
     s3_key TEXT NOT NULL,
-    type TEXT NOT NULL DEFAULT,
+    type TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     UNIQUE (video_id)
 );
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS transcoding_jobs (
     updated_at TIMESTAMP NOT NULL DEFAULT now()
 );
 
-CREATE INDEX  IF NOT EXISTS ON idx_jobs_video_id ON transcoding_jobs(video_id);
+CREATE INDEX IF NOT EXISTS idx_jobs_video_id ON transcoding_jobs(video_id);
 
 -- +goose StatementEnd
 
