@@ -7,6 +7,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+const (
+	INVALID_TOKEN = "invalid token"
+)
+
 type (
 	SignUpRequest struct {
 		Name     string `json:"name" validate:"required"`
@@ -168,7 +172,7 @@ func (s *Server) RefreshTokenHandler(c echo.Context) error {
 	claims := jwt.MapClaims{}
 	_, _, err = new(jwt.Parser).ParseUnverified(idTokenCookie.Value, claims)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, AuthResponse{Error: "invalid token"})
+		return c.JSON(http.StatusUnauthorized, AuthResponse{Error: INVALID_TOKEN})
 	}
 
 	username, ok := claims["username"].(string)
@@ -215,7 +219,7 @@ func (s *Server) ProfileHandler(c echo.Context) error {
 	claims := jwt.MapClaims{}
 	_, _, err = new(jwt.Parser).ParseUnverified(idTokenCookie.Value, claims)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, ProfileResponse{Error: "invalid token"})
+		return c.JSON(http.StatusUnauthorized, ProfileResponse{Error: INVALID_TOKEN})
 	}
 
 	sub, ok := claims["username"].(string)
@@ -225,11 +229,11 @@ func (s *Server) ProfileHandler(c echo.Context) error {
 
 	email, ok := claims["email"].(string)
 	if !ok {
-		return c.JSON(http.StatusUnauthorized, ProfileResponse{Error: "invalid token"})
+		return c.JSON(http.StatusUnauthorized, ProfileResponse{Error: INVALID_TOKEN})
 	}
 	name, ok := claims["name"].(string)
 	if !ok {
-		return c.JSON(http.StatusUnauthorized, ProfileResponse{Error: "invalid token"})
+		return c.JSON(http.StatusUnauthorized, ProfileResponse{Error: INVALID_TOKEN})
 	}
 	return c.JSON(http.StatusOK, ProfileResponse{
 		Data: &Profile{

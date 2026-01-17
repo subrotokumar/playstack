@@ -55,24 +55,9 @@ type AuthResponse struct {
 func (m *AuthMiddleware) AuthMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			var tokenStr string
-			accessTokenCookie, err := c.Request().Cookie("access_token")
-			if err != nil {
-				auth := c.Request().Header.Get("Authorization")
-				if !strings.HasPrefix(auth, "Bearer ") {
-					return echo.NewHTTPError(http.StatusUnauthorized, AuthResponse{Error: "missing token"})
-				}
-
-				tokenStr := strings.TrimPrefix(auth, "Bearer ")
-				if tokenStr == "" {
-					return c.JSON(http.StatusBadRequest, AuthResponse{Error: err.Error()})
-				}
-			}
-			tokenStr = accessTokenCookie.Value
-
-			token, err := jwt.Parse(tokenStr, m.keyFunc.Keyfunc)
-			if err != nil || !token.Valid {
-				return echo.NewHTTPError(http.StatusUnauthorized, AuthResponse{Error: "invalid token"})
+			token, echoHTTPError := m.extractJwtToken(c)
+			if echoHTTPError != nil {
+				return echoHTTPError
 			}
 
 			claims := token.Claims.(jwt.MapClaims)
@@ -80,17 +65,36 @@ func (m *AuthMiddleware) AuthMiddleware() echo.MiddlewareFunc {
 			if claims["token_use"] != "access" {
 				return echo.NewHTTPError(http.StatusUnauthorized, AuthResponse{Error: "not access token"})
 			}
-
 			if claims["iss"] != m.issuer {
 				return echo.NewHTTPError(http.StatusUnauthorized, "invalid issuer")
 			}
-
 			if claims["client_id"] != m.clientID {
 				return echo.NewHTTPError(http.StatusUnauthorized, AuthResponse{Error: "invalid client"})
 			}
-
 			c.Set("sub", claims["sub"])
 			return next(c)
 		}
 	}
+}
+
+func (m *AuthMiddleware) extractJwtToken(c echo.Context) (*jwt.Token, *echo.HTTPError) {
+	var tokenStr string
+	accessTokenCookie, err := c.Request().Cookie("access_token")
+	if err != nil {
+		auth := c.Request().Header.Get("Authorization")
+		if !strings.HasPrefix(auth, "Bearer ") {
+			return nil, echo.NewHTTPError(http.StatusUnauthorized, AuthResponse{Error: "missing token"})
+		}
+
+		tokenStr := strings.TrimPrefix(auth, "Bearer ")
+		if tokenStr == "" {
+			return nil, echo.NewHTTPError(http.StatusBadRequest, AuthResponse{Error: err.Error()})
+		}
+	}
+	tokenStr = accessTokenCookie.Value
+	token, err := jwt.Parse(tokenStr, m.keyFunc.Keyfunc)
+	if err != nil || !token.Valid {
+		return nil, echo.NewHTTPError(http.StatusUnauthorized, AuthResponse{Error: "invalid token"})
+	}
+	return token, nil
 }
