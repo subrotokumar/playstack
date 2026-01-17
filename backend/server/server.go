@@ -1,8 +1,9 @@
 package server
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 
 	validation "github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -43,14 +44,15 @@ func NewHTTPServer() *Server {
 	cfg := config.Config{}
 	err := core.ConfigFromEnv(&cfg)
 	if err != nil {
-		log.Fatalf("Failed to load config: %s", err.Error())
+		slog.Error("Failed to load config: %s", "err", err.Error())
+		os.Exit(0)
 	}
 
 	logger := core.NewLogger(cfg.App.Env, cfg.App.Name, nil)
 
 	pgxpool, err := db.NewPgxPool(cfg.ConnectionUrl(), int32(cfg.Database.MinConn), int32(cfg.Database.MinConn))
 	if err != nil {
-		log.Fatalf("Failed to get pgxpool: %s", err.Error())
+		core.LogFatal("Failed to get pgxpool", "err", err.Error())
 	}
 	dbStore := db.NewSQLStore(pgxpool)
 

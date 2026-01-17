@@ -3,7 +3,6 @@ package idp
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"github.com/MicahParks/keyfunc/v3"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
+	"gitlab.com/subrotokumar/glitchr/libs/core"
 )
 
 type AuthMiddleware struct {
@@ -33,7 +33,7 @@ func NewAuthMiddleware(region, userPoolID, clientId string) *AuthMiddleware {
 	)
 	jwksKeyFunc, err := keyfunc.NewDefaultCtx(ctx, []string{jwksURL})
 	if err != nil {
-		log.Fatalf("Failed to create a keyfunc.Keyfunc from the server's URL.\nError: %s", err)
+		core.LogFatal("Failed to create a keyfunc.Keyfunc from the server's URL.", "err", err.Error())
 	}
 	return &AuthMiddleware{
 		region:     region,

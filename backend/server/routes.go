@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"log"
 	"log/slog"
 	"strings"
 
@@ -93,7 +92,7 @@ func (s *Server) resisterMetricsRoutes(e *echo.Echo) {
 		},
 	)
 	if err := customRegistry.Register(customCounter); err != nil {
-		log.Fatal(err)
+		s.log.Fatal(err.Error())
 	}
 
 	e.Use(echoprometheus.NewMiddlewareWithConfig(echoprometheus.MiddlewareConfig{

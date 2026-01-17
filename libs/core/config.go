@@ -7,18 +7,21 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func ConfigFromFile(cfg any, path string) error {
+func ConfigFromFile(cfg any, path string) (err error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+
+	defer func() {
+		if cerr := f.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	decoder := yaml.NewDecoder(f)
-	if err = decoder.Decode(&cfg); err != nil {
-		return err
-	}
-	return nil
+	err = decoder.Decode(cfg)
+	return
 }
 
 func ConfigFromEnv(cfg any) error {

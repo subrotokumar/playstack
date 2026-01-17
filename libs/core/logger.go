@@ -71,6 +71,11 @@ func parseLevel(level string) slog.Level {
 }
 
 func (l *Logger) Fatal(msg string, args ...any) {
-	l.Logger.Error(msg, args...)
+	l.Error(msg, args...)
+	os.Exit(1)
+}
+
+func LogFatal(msg string, args ...any) {
+	slog.Error(msg, args...)
 	os.Exit(1)
 }

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 
 	"gitlab.com/subrotokumar/glitchr/backend/server"
 )
@@ -25,6 +25,6 @@ func main() {
 	svc := server.NewHTTPServer()
 	err := svc.Run()
 	if err != nil {
-		log.Fatalf("%s", err.Error())
+		slog.Error(err.Error())
 	}
 }

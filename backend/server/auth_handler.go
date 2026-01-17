@@ -224,7 +224,7 @@ func (s *Server) ProfileHandler(c echo.Context) error {
 
 	sub, ok := claims["username"].(string)
 	if !ok {
-		sub, ok = claims["sub"].(string)
+		sub = claims["sub"].(string)
 	}
 
 	email, ok := claims["email"].(string)
