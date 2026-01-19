@@ -33,6 +33,9 @@ type Config struct {
 		ClientID     string `yaml:"client_id" envconfig:"COGNITO_CLIENT_ID"`
 		ClientSecret string `yaml:"client_secret" envconfig:"COGNITO_CLIENT_SECRET"`
 	} `yaml:"cognito"`
+	S3 struct {
+		RawMediaBucket string `yaml:"raw_media_bucket" envconfig:"RAW_MEDIA_BUCKET"`
+	} `yaml:"s3"`
 }
 
 func (cfg Config) ConnectionUrl() string {

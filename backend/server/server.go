@@ -11,6 +11,7 @@ import (
 	"gitlab.com/subrotokumar/glitchr/libs/core"
 	"gitlab.com/subrotokumar/glitchr/libs/db"
 	idp "gitlab.com/subrotokumar/glitchr/libs/idp"
+	"gitlab.com/subrotokumar/glitchr/libs/storage"
 )
 
 const (
@@ -32,6 +33,7 @@ type (
 		handler *http.Server
 		log     *core.Logger
 		store   *db.SQLStore
+		storage *storage.Storage
 	}
 	Ctx struct {
 		echo.Context
@@ -56,11 +58,14 @@ func NewHTTPServer() *Server {
 	}
 	dbStore := db.NewSQLStore(pgxpool)
 
+	storage := storage.NewStorageProvider(cfg.Aws.Region)
+
 	srv := &Server{
-		cfg:   cfg,
-		idp:   idp.NewIndentityProvider(cfg.Aws.Region, cfg.Cognito.ClientID, cfg.Cognito.ClientSecret),
-		log:   logger,
-		store: dbStore,
+		cfg:     cfg,
+		idp:     idp.NewIndentityProvider(cfg.Aws.Region, cfg.Cognito.ClientID, cfg.Cognito.ClientSecret),
+		log:     logger,
+		store:   dbStore,
+		storage: storage,
 	}
 	srv.handler = &http.Server{
 		Addr:    cfg.App.Host + ":" + cfg.App.Port,

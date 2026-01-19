@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-func (storage Storage) GetObject(
+func (storage Storage) PresignedGetObjectUrl(
 	ctx context.Context, bucketName string, objectKey string, lifetimeSecs int64) (*v4.PresignedHTTPRequest, error) {
 	request, err := storage.presignClient.PresignGetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
@@ -25,7 +25,7 @@ func (storage Storage) GetObject(
 	return request, err
 }
 
-func (storage Storage) PutObject(
+func (storage Storage) PresignedPutObjectUrl(
 	ctx context.Context, bucketName string, objectKey string, lifetimeSecs int64) (*v4.PresignedHTTPRequest, error) {
 	request, err := storage.presignClient.PresignPutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
@@ -40,7 +40,7 @@ func (storage Storage) PutObject(
 	return request, err
 }
 
-func (storage Storage) DeleteObject(ctx context.Context, bucketName string, objectKey string) (*v4.PresignedHTTPRequest, error) {
+func (storage Storage) PresignedDeleteObjectUrl(ctx context.Context, bucketName string, objectKey string) (*v4.PresignedHTTPRequest, error) {
 	request, err := storage.presignClient.PresignDeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(objectKey),
@@ -51,7 +51,7 @@ func (storage Storage) DeleteObject(ctx context.Context, bucketName string, obje
 	return request, err
 }
 
-func (storage Storage) PresignPostObject(ctx context.Context, bucketName string, objectKey string, lifetimeSecs int64) (*s3.PresignedPostRequest, error) {
+func (storage Storage) PresignedPostObjectUrl(ctx context.Context, bucketName string, objectKey string, lifetimeSecs int64) (*s3.PresignedPostRequest, error) {
 	request, err := storage.presignClient.PresignPostObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(objectKey),

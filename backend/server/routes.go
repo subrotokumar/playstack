@@ -114,4 +114,7 @@ func (s *Server) registerRoutes(e *echo.Echo) {
 	e.POST("/auth/refresh", s.RefreshTokenHandler)
 	e.POST("/auth/confirm-signup", s.ConfirmSignupHandler)
 	e.POST("/auth/profile", s.ProfileHandler)
+
+	e.Use()
+	e.POST("/upload/policies/assets", s.AssetsHandler)
 }
