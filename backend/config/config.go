@@ -32,6 +32,7 @@ type Config struct {
 	Cognito struct {
 		ClientID     string `yaml:"client_id" envconfig:"COGNITO_CLIENT_ID"`
 		ClientSecret string `yaml:"client_secret" envconfig:"COGNITO_CLIENT_SECRET"`
+		UserPoolID   string `yaml:"user_pool_id" envconfig:"COGNITO_USER_POOL_ID"`
 	} `yaml:"cognito"`
 	S3 struct {
 		RawMediaBucket string `yaml:"raw_media_bucket" envconfig:"RAW_MEDIA_BUCKET"`

@@ -1,10 +1,9 @@
 -- name: CreateUser :one
 INSERT INTO users (
     id,
-    cognito_sub,
     email
 ) VALUES (
-    $1, $2, $3
+    $1, $2
 )
 RETURNING *;
 
@@ -12,11 +11,6 @@ RETURNING *;
 SELECT *
 FROM users
 WHERE id = $1;
-
--- name: GetUserByCognitoSub :one
-SELECT *
-FROM users
-WHERE cognito_sub = $1;
 
 -- name: GetUserByEmail :one
 SELECT *

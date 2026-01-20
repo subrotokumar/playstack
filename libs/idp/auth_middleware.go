@@ -9,6 +9,7 @@ import (
 
 	"github.com/MicahParks/keyfunc/v3"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/subrotokumar/glitchr/libs/core"
 )
@@ -59,7 +60,6 @@ func (m *AuthMiddleware) AuthMiddleware() echo.MiddlewareFunc {
 			if echoHTTPError != nil {
 				return echoHTTPError
 			}
-
 			claims := token.Claims.(jwt.MapClaims)
 
 			if claims["token_use"] != "access" {
@@ -71,7 +71,7 @@ func (m *AuthMiddleware) AuthMiddleware() echo.MiddlewareFunc {
 			if claims["client_id"] != m.clientID {
 				return echo.NewHTTPError(http.StatusUnauthorized, AuthResponse{Error: "invalid client"})
 			}
-			c.Set("sub", claims["sub"])
+			c.Set("sub", uuid.MustParse(claims["sub"].(string)))
 			return next(c)
 		}
 	}

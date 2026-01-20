@@ -3,6 +3,7 @@
 SELECT 'up SQL query';
 
 CREATE TYPE video_status AS ENUM (
+    'PREUPLOAD',
     'UPLOADED',
     'PROCESSING',
     'READY',
@@ -11,7 +12,6 @@ CREATE TYPE video_status AS ENUM (
 
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
-    cognito_sub VARCHAR(255) UNIQUE NOT NULL,
     email VARCHAR(255),
     created_at TIMESTAMP NOT NULL DEFAULT now()
 );
@@ -27,7 +27,6 @@ CREATE TABLE IF NOT EXISTS videos (
 );
 
 CREATE INDEX IF NOT EXISTS idx_videos_user_id ON videos(user_id);
-
 -- +goose StatementEnd
 
 -- +goose Down

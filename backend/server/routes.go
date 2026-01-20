@@ -11,6 +11,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	echoSwagger "github.com/swaggo/echo-swagger"
 	_ "gitlab.com/subrotokumar/glitchr/backend/swagger"
+	"gitlab.com/subrotokumar/glitchr/libs/idp"
 )
 
 func (s *Server) Mux() *echo.Echo {
@@ -102,7 +103,6 @@ func (s *Server) resisterMetricsRoutes(e *echo.Echo) {
 		Registerer: customRegistry,
 	}))
 	e.GET("/metrics", echoprometheus.NewHandlerWithConfig(echoprometheus.HandlerConfig{Gatherer: customRegistry}))
-
 }
 
 func (s *Server) registerRoutes(e *echo.Echo) {
@@ -115,6 +115,6 @@ func (s *Server) registerRoutes(e *echo.Echo) {
 	e.POST("/auth/confirm-signup", s.ConfirmSignupHandler)
 	e.POST("/auth/profile", s.ProfileHandler)
 
-	e.Use()
+	e.Use(idp.NewAuthMiddleware(s.cfg.Aws.Region, s.cfg.Cognito.UserPoolID, s.cfg.Cognito.ClientID).AuthMiddleware())
 	e.POST("/upload/policies/assets", s.AssetsHandler)
 }

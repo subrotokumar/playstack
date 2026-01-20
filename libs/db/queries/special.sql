@@ -1,8 +1,7 @@
 -- name: ListVideosWithUsers :many
 SELECT
     v.*,
-    u.email,
-    u.cognito_sub
+    u.email
 FROM videos v
 JOIN users u ON u.id = v.user_id
 ORDER BY v.created_at DESC;
@@ -10,8 +9,7 @@ ORDER BY v.created_at DESC;
 -- name: GetVideoWithUser :one
 SELECT
     v.*,
-    u.email,
-    u.cognito_sub
+    u.email
 FROM videos v
 JOIN users u ON u.id = v.user_id
 WHERE v.id = $1;

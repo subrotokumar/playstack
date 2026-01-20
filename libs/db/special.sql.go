@@ -56,8 +56,7 @@ func (q *Queries) CountVideosByUser(ctx context.Context, userID uuid.UUID) (int6
 const getVideoWithUser = `-- name: GetVideoWithUser :one
 SELECT
     v.id, v.user_id, v.title, v.status, v.original_s3_key, v.duration_sec, v.created_at,
-    u.email,
-    u.cognito_sub
+    u.email
 FROM videos v
 JOIN users u ON u.id = v.user_id
 WHERE v.id = $1
@@ -72,7 +71,6 @@ type GetVideoWithUserRow struct {
 	DurationSec   pgtype.Int4      `json:"duration_sec"`
 	CreatedAt     pgtype.Timestamp `json:"created_at"`
 	Email         pgtype.Text      `json:"email"`
-	CognitoSub    string           `json:"cognito_sub"`
 }
 
 func (q *Queries) GetVideoWithUser(ctx context.Context, id uuid.UUID) (GetVideoWithUserRow, error) {
@@ -87,7 +85,6 @@ func (q *Queries) GetVideoWithUser(ctx context.Context, id uuid.UUID) (GetVideoW
 		&i.DurationSec,
 		&i.CreatedAt,
 		&i.Email,
-		&i.CognitoSub,
 	)
 	return i, err
 }
@@ -95,8 +92,7 @@ func (q *Queries) GetVideoWithUser(ctx context.Context, id uuid.UUID) (GetVideoW
 const listVideosWithUsers = `-- name: ListVideosWithUsers :many
 SELECT
     v.id, v.user_id, v.title, v.status, v.original_s3_key, v.duration_sec, v.created_at,
-    u.email,
-    u.cognito_sub
+    u.email
 FROM videos v
 JOIN users u ON u.id = v.user_id
 ORDER BY v.created_at DESC
@@ -111,7 +107,6 @@ type ListVideosWithUsersRow struct {
 	DurationSec   pgtype.Int4      `json:"duration_sec"`
 	CreatedAt     pgtype.Timestamp `json:"created_at"`
 	Email         pgtype.Text      `json:"email"`
-	CognitoSub    string           `json:"cognito_sub"`
 }
 
 func (q *Queries) ListVideosWithUsers(ctx context.Context) ([]ListVideosWithUsersRow, error) {
@@ -132,7 +127,6 @@ func (q *Queries) ListVideosWithUsers(ctx context.Context) ([]ListVideosWithUser
 			&i.DurationSec,
 			&i.CreatedAt,
 			&i.Email,
-			&i.CognitoSub,
 		); err != nil {
 			return nil, err
 		}
