@@ -19,12 +19,12 @@ const (
 
 type (
 	Asset struct {
-		Id           string `json:"id"`
-		Name         string `json:"name"`
-		Size         int    `json:"size"`
-		ContentType  string `json:"content_type"`
-		Href         string `json:"href"`
-		OriginalName string `json:"original_name"`
+		Id           uuid.UUID `json:"id"`
+		Name         string    `json:"name"`
+		Size         int       `json:"size"`
+		ContentType  string    `json:"content_type"`
+		Href         string    `json:"href"`
+		OriginalName string    `json:"original_name"`
 	}
 	AssetsRequest struct {
 		Name        string `json:"name" validate:"required"`
@@ -42,6 +42,13 @@ type (
 		Message string              `json:"message,omitempty"`
 		Error   any                 `json:"error,omitempty"`
 	}
+
+	UpdateMetadataRequest struct {
+		UserID      uuid.UUID       `json:"user_id"`
+		Title       *string         `json:"title"`
+		Status      *db.VideoStatus `json:"Status" validate:"omitempty,oneof='PREUPLOAD' 'UPLOADED' 'PROCESSING' 'READY' 'FAILED'"`
+		DurationSec *int32          `json:"duration_sec"`
+	}
 )
 
 func (s *Server) AssetsHandler(c echo.Context) error {
@@ -54,12 +61,11 @@ func (s *Server) AssetsHandler(c echo.Context) error {
 	userId := c.Get("sub").(uuid.UUID)
 	key := fmt.Sprintf("/%d/%s", userId, videoId)
 	_, err := s.store.CreateVideo(c.Request().Context(), db.CreateVideoParams{
-		ID:            videoId,
-		UserID:        userId,
-		Title:         body.Name,
-		Status:        db.VideoStatusPREUPLOAD,
-		OriginalS3Key: key,
-		DurationSec:   pgtype.Int4{Valid: false},
+		ID:          videoId,
+		UserID:      userId,
+		Title:       body.Name,
+		Status:      db.VideoStatusPREUPLOAD,
+		DurationSec: pgtype.Int4{Valid: false},
 	})
 	if err != nil {
 		s.log.Error("Failed to create video record", "err", err)
@@ -82,7 +88,7 @@ func (s *Server) AssetsHandler(c echo.Context) error {
 			UploadUrl: presignedUrl.URL,
 			Header:    map[string]string{},
 			Asset: Asset{
-				Id:           uuid.Must(uuid.NewV7()).String(),
+				Id:           videoId,
 				Name:         body.Name,
 				Size:         int(body.Size),
 				ContentType:  body.ContentType,
@@ -93,4 +99,45 @@ func (s *Server) AssetsHandler(c echo.Context) error {
 		},
 		Message: "Presigned URL generated successfully",
 	})
+}
+
+func (s *Server) UpdateMediaInternalHandler(c echo.Context) error {
+	videoID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, AssetsResponse{Error: "Invalid video ID"})
+	}
+	body := UpdateMetadataRequest{}
+	if err := RequestBody(c, &body); err != nil {
+		return c.JSON(http.StatusBadRequest, AssetsResponse{Error: err.Error()})
+	}
+
+	params := db.PatchVideosParams{
+		ID:     videoID,
+		UserID: body.UserID,
+	}
+	if body.Title != nil {
+		params.Title = pgtype.Text{
+			String: *body.Title,
+			Valid:  true,
+		}
+	}
+
+	if body.Status != nil {
+		params.Status = db.NullVideoStatus{
+			VideoStatus: *body.Status,
+			Valid:       true,
+		}
+	}
+
+	if body.DurationSec != nil {
+		params.DurationSec = pgtype.Int4{
+			Int32: *body.DurationSec,
+			Valid: true,
+		}
+	}
+	if err := s.store.PatchVideos(c.Request().Context(), params); err != nil {
+		s.log.Error("Failed to update video metadata", "err", err)
+		return c.JSON(http.StatusInternalServerError, AssetsResponse{Error: "Failed to update video metadata"})
+	}
+	return c.NoContent(http.StatusOK)
 }

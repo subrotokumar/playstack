@@ -4,10 +4,9 @@ INSERT INTO videos (
     user_id,
     title,
     status,
-    original_s3_key,
     duration_sec
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2, $3, $4, $5
 )
 RETURNING *;
 
@@ -63,3 +62,12 @@ FROM videos
 WHERE status = 'PROCESSING'
   AND created_at < now() - interval '30 minutes'
 ORDER BY created_at ASC;
+
+-- name: PatchVideos :exec
+UPDATE videos
+SET 
+  title = COALESCE(sqlc.narg(title), title),
+  status = COALESCE(sqlc.narg(status), status),
+  duration_sec = COALESCE(sqlc.narg(duration_sec), duration_sec)
+WHERE
+  id = @id AND user_id = @user_id;

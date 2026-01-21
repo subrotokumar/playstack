@@ -13,6 +13,10 @@ type Config struct {
 		Host string   `yaml:"host" envconfig:"SERVICE_HOST" default:"0.0.0.0"`
 		Env  core.Env `yaml:"env" envconfig:"SERVICE_ENV" default:"dev"`
 	} `yaml:"app"`
+	BasicAuth struct {
+		Username string `yaml:"username" envconfig:"BASIC_AUTH_USERNAME" default:"admin"`
+		Password string `yaml:"password" envconfig:"BASIC_AUTH_PASSWORD" default:"password"`
+	} `yaml:"basic_auth"`
 	Log struct {
 		Level *string `yaml:"level" envconfig:"LOG_LEVEL" default:"INFO"`
 	} `yaml:"log"`

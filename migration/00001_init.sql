@@ -21,7 +21,6 @@ CREATE TABLE IF NOT EXISTS videos (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     status video_status NOT NULL,
-    original_s3_key TEXT NOT NULL,
     duration_sec INT,
     created_at TIMESTAMP NOT NULL DEFAULT now()
 );

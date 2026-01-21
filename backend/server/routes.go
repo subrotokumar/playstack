@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"crypto/subtle"
+	"errors"
 	"log/slog"
 	"strings"
 
@@ -105,16 +107,50 @@ func (s *Server) resisterMetricsRoutes(e *echo.Echo) {
 	e.GET("/metrics", echoprometheus.NewHandlerWithConfig(echoprometheus.HandlerConfig{Gatherer: customRegistry}))
 }
 
+func (s *Server) UserAuthMiddleware() echo.MiddlewareFunc {
+	return idp.NewAuthMiddleware(s.cfg.Aws.Region, s.cfg.Cognito.UserPoolID, s.cfg.Cognito.ClientID).AuthMiddleware()
+}
+
+func (s *Server) getBasicAuthMiddleware() echo.MiddlewareFunc {
+	return middleware.BasicAuthWithConfig(middleware.BasicAuthConfig{
+		Realm: "restricted",
+		Validator: func(username, password string, c echo.Context) (bool, error) {
+			expectedUser := s.cfg.BasicAuth.Username
+			expectedPass := s.cfg.BasicAuth.Password
+
+			if expectedUser == "" || expectedPass == "" {
+				return false, errors.New("basic auth credentials not configured")
+			}
+
+			userMatch := subtle.ConstantTimeCompare(
+				[]byte(username),
+				[]byte(expectedUser),
+			) == 1
+
+			passMatch := subtle.ConstantTimeCompare(
+				[]byte(password),
+				[]byte(expectedPass),
+			) == 1
+
+			return userMatch && passMatch, nil
+		},
+	})
+}
+
 func (s *Server) registerRoutes(e *echo.Echo) {
+	externalAuthMiddleware := s.UserAuthMiddleware()
+	internalAuthMiddleware := s.getBasicAuthMiddleware()
+
 	e.GET("/health/liveness", s.LivenessHandler)
 	e.GET("/health/readiness", s.ReadinessHandler)
 
+	// Auth routes
 	e.POST("/auth/signup", s.SignupHandler)
 	e.POST("/auth/login", s.LoginHandler)
 	e.POST("/auth/refresh", s.RefreshTokenHandler)
 	e.POST("/auth/confirm-signup", s.ConfirmSignupHandler)
 	e.POST("/auth/profile", s.ProfileHandler)
 
-	e.Use(idp.NewAuthMiddleware(s.cfg.Aws.Region, s.cfg.Cognito.UserPoolID, s.cfg.Cognito.ClientID).AuthMiddleware())
-	e.POST("/upload/policies/assets", s.AssetsHandler)
+	e.POST("/media/assets", s.AssetsHandler, externalAuthMiddleware)
+	e.PATCH("/internal/media/:id", s.UpdateMediaInternalHandler, internalAuthMiddleware)
 }
