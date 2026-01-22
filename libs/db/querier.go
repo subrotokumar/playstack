@@ -8,7 +8,6 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
@@ -18,7 +17,7 @@ type Querier interface {
 	CreateVideo(ctx context.Context, arg CreateVideoParams) (Video, error)
 	DeleteUser(ctx context.Context, id uuid.UUID) error
 	DeleteVideo(ctx context.Context, id uuid.UUID) error
-	GetUserByEmail(ctx context.Context, email pgtype.Text) (User, error)
+	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
 	GetVideoByID(ctx context.Context, id uuid.UUID) (Video, error)
 	GetVideoWithUser(ctx context.Context, id uuid.UUID) (GetVideoWithUserRow, error)
@@ -28,6 +27,7 @@ type Querier interface {
 	ListVideosByUserPaginated(ctx context.Context, arg ListVideosByUserPaginatedParams) ([]Video, error)
 	ListVideosWithUsers(ctx context.Context) ([]ListVideosWithUsersRow, error)
 	PatchVideos(ctx context.Context, arg PatchVideosParams) error
+	SearchVideo(ctx context.Context, arg SearchVideoParams) ([]Video, error)
 	UpdateVideoDuration(ctx context.Context, arg UpdateVideoDurationParams) (Video, error)
 	UpdateVideoStatus(ctx context.Context, arg UpdateVideoStatusParams) (Video, error)
 	UpdateVideoTitle(ctx context.Context, arg UpdateVideoTitleParams) (Video, error)

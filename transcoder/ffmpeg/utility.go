@@ -1,6 +1,6 @@
 package ffmpeg
 
-func HLS_CMD(inputPath, outputDir string) []string {
+func HlsCommand(inputPath, outputDir string) []string {
 	return []string{
 		"ffmpeg",
 		"-i", inputPath,
@@ -46,7 +46,7 @@ func HLS_CMD(inputPath, outputDir string) []string {
 	}
 }
 
-func DASH_CMD(inputPath, outputDir string) []string {
+func DashCommand(inputPath, outputDir string) []string {
 	return []string{
 		"ffmpeg",
 		"-i", inputPath,

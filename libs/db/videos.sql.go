@@ -256,6 +256,62 @@ func (q *Queries) PatchVideos(ctx context.Context, arg PatchVideosParams) error 
 	return err
 }
 
+const searchVideo = `-- name: SearchVideo :many
+SELECT id, user_id, title, status, duration_sec, created_at
+FROM videos
+WHERE
+    user_id = COALESCE($1, user_id)
+AND status  = COALESCE($2, status)
+AND (
+    $3 IS NULL
+    OR title ILIKE '%' || $3 || '%'
+)
+ORDER BY created_at DESC
+LIMIT COALESCE($5, 30)
+OFFSET COALESCE($4, 0) * COALESCE($5, 30)
+`
+
+type SearchVideoParams struct {
+	UserID pgtype.UUID     `json:"user_id"`
+	Status NullVideoStatus `json:"status"`
+	Title  interface{}     `json:"title"`
+	Page   interface{}     `json:"page"`
+	Size   interface{}     `json:"size"`
+}
+
+func (q *Queries) SearchVideo(ctx context.Context, arg SearchVideoParams) ([]Video, error) {
+	rows, err := q.db.Query(ctx, searchVideo,
+		arg.UserID,
+		arg.Status,
+		arg.Title,
+		arg.Page,
+		arg.Size,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Video{}
+	for rows.Next() {
+		var i Video
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Title,
+			&i.Status,
+			&i.DurationSec,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateVideoDuration = `-- name: UpdateVideoDuration :one
 UPDATE videos
 SET duration_sec = $2

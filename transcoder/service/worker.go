@@ -70,10 +70,9 @@ func (s *Service) Download(ctx context.Context, destPath string) error {
 }
 
 func (s *Service) Transcode(ctx context.Context, inputPath, outputDir string) error {
-
 	s.log.Info("Transcoding media", "input", inputPath, "output", outputDir)
 
-	cmdArgs := ffmpeg.DASH_CMD(inputPath, outputDir)
+	cmdArgs := ffmpeg.DashCommand(inputPath, outputDir)
 	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {

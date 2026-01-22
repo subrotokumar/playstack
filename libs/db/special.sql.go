@@ -72,7 +72,7 @@ type GetVideoWithUserRow struct {
 	Status      VideoStatus      `json:"status"`
 	DurationSec pgtype.Int4      `json:"duration_sec"`
 	CreatedAt   pgtype.Timestamp `json:"created_at"`
-	Email       pgtype.Text      `json:"email"`
+	Email       string           `json:"email"`
 }
 
 func (q *Queries) GetVideoWithUser(ctx context.Context, id uuid.UUID) (GetVideoWithUserRow, error) {
@@ -106,7 +106,7 @@ type ListVideosWithUsersRow struct {
 	Status      VideoStatus      `json:"status"`
 	DurationSec pgtype.Int4      `json:"duration_sec"`
 	CreatedAt   pgtype.Timestamp `json:"created_at"`
-	Email       pgtype.Text      `json:"email"`
+	Email       string           `json:"email"`
 }
 
 func (q *Queries) ListVideosWithUsers(ctx context.Context) ([]ListVideosWithUsersRow, error) {

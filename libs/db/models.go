@@ -165,7 +165,7 @@ type TranscodingJob struct {
 
 type User struct {
 	ID        uuid.UUID        `json:"id"`
-	Email     pgtype.Text      `json:"email"`
+	Email     string           `json:"email"`
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 }
 

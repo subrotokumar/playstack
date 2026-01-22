@@ -14,7 +14,21 @@ import (
 )
 
 const (
-	PUT_PRESIGNED_URL_TTL = 1 * 60
+	POST_PRESIGNED_URL_TTL = 1 * 60
+	PUT_PRESIGNED_URL_TTL  = 1 * 1
+)
+
+const (
+	ErrFailedToGeneratePresignedURL = "failed to generate presigned url"
+	ErrInvalidVideoID               = "invalid video ID"
+	ErrFailedToCreateVideoRecord    = "failed to create video record"
+	ErrFailedToFetchVideo           = "failed to fetch video"
+	ErrNoPermission                 = "you do not have permission to perform this action"
+	ErrFailedToUpdateMetadata       = "failed to update video metadata"
+)
+
+const (
+	MsgPresignedURLGenerated = "presigned URL generated successfully"
 )
 
 type (
@@ -42,6 +56,18 @@ type (
 		Message string              `json:"message,omitempty"`
 		Error   any                 `json:"error,omitempty"`
 	}
+	ThumbnailAssetsRequest struct {
+		Name        string `json:"name" validate:"required"`
+		Size        int64  `json:"size" validate:"required"`
+		ContentType string `json:"content_type" validate:"required"`
+	}
+	ThumbnailAssetsResponse struct {
+		Data struct {
+			UploadUrl string `json:"upload_url"`
+		} `json:"data,omitempty"`
+		Message string `json:"message,omitempty"`
+		Error   any    `json:"error,omitempty"`
+	}
 
 	UpdateMetadataRequest struct {
 		UserID      uuid.UUID       `json:"user_id"`
@@ -51,7 +77,7 @@ type (
 	}
 )
 
-func (s *Server) AssetsHandler(c echo.Context) error {
+func (s *Server) VideoAssetsHandler(c echo.Context) error {
 	body := AssetsRequest{}
 	if err := RequestBody(c, &body); err != nil {
 		return c.JSON(http.StatusInternalServerError, AssetsResponse{Error: err.Error()})
@@ -59,7 +85,7 @@ func (s *Server) AssetsHandler(c echo.Context) error {
 
 	videoId := uuid.Must(uuid.NewV7())
 	userId := c.Get("sub").(uuid.UUID)
-	key := fmt.Sprintf("/%d/%s", userId, videoId)
+	key := fmt.Sprintf("/%s/%s/%s", userId.String(), videoId.String(), body.Name)
 	_, err := s.store.CreateVideo(c.Request().Context(), db.CreateVideoParams{
 		ID:          videoId,
 		UserID:      userId,
@@ -68,8 +94,8 @@ func (s *Server) AssetsHandler(c echo.Context) error {
 		DurationSec: pgtype.Int4{Valid: false},
 	})
 	if err != nil {
-		s.log.Error("Failed to create video record", "err", err)
-		return c.JSON(http.StatusInternalServerError, AssetsResponse{Error: "Failed to create video record"})
+		s.log.Error(ErrFailedToCreateVideoRecord, "err", err)
+		return c.JSON(http.StatusInternalServerError, AssetsResponse{Error: ErrFailedToCreateVideoRecord})
 	}
 	presignedUrl, err := s.storage.PresignedClient().PresignPostObject(c.Request().Context(), &s3.PutObjectInput{
 		Bucket:        aws.String(s.cfg.S3.RawMediaBucket),
@@ -78,7 +104,7 @@ func (s *Server) AssetsHandler(c echo.Context) error {
 		ContentLength: aws.Int64(int64(body.Size)),
 		Metadata:      map[string]string{},
 	}, func(options *s3.PresignPostOptions) {
-		options.Expires = time.Duration(PUT_PRESIGNED_URL_TTL) * time.Second
+		options.Expires = time.Duration(POST_PRESIGNED_URL_TTL) * time.Second
 	})
 	if err != nil {
 		return c.NoContent(http.StatusInternalServerError)
@@ -97,14 +123,58 @@ func (s *Server) AssetsHandler(c echo.Context) error {
 			},
 			Form: presignedUrl.Values,
 		},
-		Message: "Presigned URL generated successfully",
+		Message: MsgPresignedURLGenerated,
+	})
+}
+
+func (s *Server) ThumbnailSignedUrlHandler(c echo.Context) error {
+	userId := c.Get("sub").(uuid.UUID)
+	videoId, err := uuid.Parse(c.Param("videoId"))
+	body := ThumbnailAssetsRequest{}
+	if err := RequestBody(c, &body); err != nil {
+		return c.JSON(http.StatusInternalServerError, AssetsResponse{Error: err.Error()})
+	}
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, AssetsResponse{Error: ErrInvalidVideoID})
+	}
+
+	key := fmt.Sprintf("/%s/%s/thumbnail", userId.String(), videoId.String())
+	video, err := s.store.GetVideoByID(c.Request().Context(), videoId)
+	if err != nil {
+		s.log.Error(ErrFailedToFetchVideo, "err", err)
+		return c.JSON(http.StatusInternalServerError, AssetsResponse{Error: ErrFailedToFetchVideo})
+	}
+	if video.UserID != userId {
+		return c.JSON(http.StatusForbidden, AssetsResponse{Error: ErrNoPermission})
+	}
+
+	presignedUrl, err := s.storage.PresignedClient().PresignPutObject(c.Request().Context(), &s3.PutObjectInput{
+		Bucket:        aws.String(s.cfg.S3.MediaBucket),
+		Key:           aws.String(key),
+		ContentType:   aws.String(body.ContentType),
+		ContentLength: aws.Int64(int64(body.Size)),
+		Metadata:      map[string]string{},
+	}, func(options *s3.PresignOptions) {
+		options.Expires = time.Duration(PUT_PRESIGNED_URL_TTL) * time.Second
+	})
+	if err != nil {
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	return c.JSON(http.StatusOK, ThumbnailAssetsResponse{
+		Data: struct {
+			UploadUrl string "json:\"upload_url\""
+		}{
+			UploadUrl: presignedUrl.URL,
+		},
+		Message: MsgPresignedURLGenerated,
 	})
 }
 
 func (s *Server) UpdateMediaInternalHandler(c echo.Context) error {
 	videoID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, AssetsResponse{Error: "Invalid video ID"})
+		return c.JSON(http.StatusBadRequest, AssetsResponse{Error: ErrInvalidVideoID})
 	}
 	body := UpdateMetadataRequest{}
 	if err := RequestBody(c, &body); err != nil {
@@ -136,8 +206,21 @@ func (s *Server) UpdateMediaInternalHandler(c echo.Context) error {
 		}
 	}
 	if err := s.store.PatchVideos(c.Request().Context(), params); err != nil {
-		s.log.Error("Failed to update video metadata", "err", err)
-		return c.JSON(http.StatusInternalServerError, AssetsResponse{Error: "Failed to update video metadata"})
+		s.log.Error(ErrFailedToUpdateMetadata, "err", err)
+		return c.JSON(http.StatusInternalServerError, AssetsResponse{Error: ErrFailedToUpdateMetadata})
 	}
 	return c.NoContent(http.StatusOK)
+}
+
+func (s *Server) GetVideoHandler(c echo.Context) error {
+	resp, err := s.store.SearchVideo(c.Request().Context(), db.SearchVideoParams{
+		Status: db.NullVideoStatus{VideoStatus: db.VideoStatusREADY},
+	})
+
+	if err != nil {
+		s.log.Error(ErrFailedToFetchVideo, "err", err)
+		return c.JSON(http.StatusInternalServerError, AssetsResponse{Error: ErrFailedToFetchVideo})
+	}
+
+	return c.JSON(http.StatusOK, resp)
 }

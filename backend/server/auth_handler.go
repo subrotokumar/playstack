@@ -4,11 +4,13 @@ import (
 	"net/http"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"gitlab.com/subrotokumar/glitchr/libs/db"
 )
 
 const (
-	INVALID_TOKEN = "invalid token"
+	ErrInvalidToken = "invalid token"
 )
 
 type (
@@ -75,17 +77,16 @@ func (s *Server) SignupHandler(c echo.Context) error {
 		body.Email,
 		body.Password,
 	)
-	_ = userSub
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, AuthResponse{Error: err.Error()})
 	}
 
 	if confirmed {
-		return c.JSON(http.StatusOK, AuthResponse{
-			Message: "User signed up successfully",
+		s.store.CreateUser(c.Request().Context(), db.CreateUserParams{
+			ID:    uuid.MustParse(userSub),
+			Email: body.Email,
 		})
 	}
-
 	return c.JSON(http.StatusOK, AuthResponse{
 		Message: "User signed up successfully. Please confirm your email.",
 	})
@@ -172,7 +173,7 @@ func (s *Server) RefreshTokenHandler(c echo.Context) error {
 	claims := jwt.MapClaims{}
 	_, _, err = new(jwt.Parser).ParseUnverified(idTokenCookie.Value, claims)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, AuthResponse{Error: INVALID_TOKEN})
+		return c.JSON(http.StatusUnauthorized, AuthResponse{Error: ErrInvalidToken})
 	}
 
 	username, ok := claims["username"].(string)
@@ -219,7 +220,7 @@ func (s *Server) ProfileHandler(c echo.Context) error {
 	claims := jwt.MapClaims{}
 	_, _, err = new(jwt.Parser).ParseUnverified(idTokenCookie.Value, claims)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, ProfileResponse{Error: INVALID_TOKEN})
+		return c.JSON(http.StatusUnauthorized, ProfileResponse{Error: ErrInvalidToken})
 	}
 
 	sub, ok := claims["username"].(string)
@@ -229,11 +230,11 @@ func (s *Server) ProfileHandler(c echo.Context) error {
 
 	email, ok := claims["email"].(string)
 	if !ok {
-		return c.JSON(http.StatusUnauthorized, ProfileResponse{Error: INVALID_TOKEN})
+		return c.JSON(http.StatusUnauthorized, ProfileResponse{Error: ErrInvalidToken})
 	}
 	name, ok := claims["name"].(string)
 	if !ok {
-		return c.JSON(http.StatusUnauthorized, ProfileResponse{Error: INVALID_TOKEN})
+		return c.JSON(http.StatusUnauthorized, ProfileResponse{Error: ErrInvalidToken})
 	}
 	return c.JSON(http.StatusOK, ProfileResponse{
 		Data: &Profile{

@@ -28,6 +28,21 @@ WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3;
 
+-- name: SearchVideo :many
+SELECT *
+FROM videos
+WHERE
+    user_id = COALESCE(sqlc.narg(user_id), user_id)
+AND status  = COALESCE(sqlc.narg(status), status)
+AND (
+    sqlc.narg(title) IS NULL
+    OR title ILIKE '%' || sqlc.narg(title) || '%'
+)
+ORDER BY created_at DESC
+LIMIT COALESCE(sqlc.narg(size), 30)
+OFFSET COALESCE(sqlc.narg(page), 0) * COALESCE(sqlc.narg(size), 30);
+
+
 -- name: UpdateVideoStatus :one
 UPDATE videos
 SET status = $2

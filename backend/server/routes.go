@@ -151,6 +151,12 @@ func (s *Server) registerRoutes(e *echo.Echo) {
 	e.POST("/auth/confirm-signup", s.ConfirmSignupHandler)
 	e.POST("/auth/profile", s.ProfileHandler)
 
-	e.POST("/media/assets", s.AssetsHandler, externalAuthMiddleware)
-	e.PATCH("/internal/media/:id", s.UpdateMediaInternalHandler, internalAuthMiddleware)
+	// Media routes
+	mediaRoutes := e.Group("/media", externalAuthMiddleware)
+	mediaRoutes.GET("/videos", s.GetVideoHandler)
+	mediaRoutes.POST("/videos/signed-url", s.VideoAssetsHandler)
+	mediaRoutes.PUT("/videos/:videoId/thumbnail/signed-url", s.ThumbnailSignedUrlHandler)
+
+	internal := e.Group("/internal", internalAuthMiddleware)
+	internal.PATCH("/media/videos/:videoId", s.UpdateMediaInternalHandler)
 }

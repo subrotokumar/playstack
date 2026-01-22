@@ -40,6 +40,7 @@ type Config struct {
 	} `yaml:"cognito"`
 	S3 struct {
 		RawMediaBucket string `yaml:"raw_media_bucket" envconfig:"RAW_MEDIA_BUCKET"`
+		MediaBucket    string `yaml:"raw_media_bucket" envconfig:"RAW_MEDIA_BUCKET"`
 	} `yaml:"s3"`
 }
 
