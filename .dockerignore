@@ -335,3 +335,5 @@ terraform.rc
 
 # Gosec
 gosec-report.json
+*/values.secret.yaml
+k8s/helm/values.secret.yaml

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: "{{ .Chart.Name }}-{{ .Values.backend.name }}"
+  namespace: "{{ .Values.namespace }}"
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  selector:
+    matchLabels:
+      app: "{{ .Chart.Name }}-{{ .Values.backend.name }}"
+  replicas: {{ default 1 .Values.replicaCount | int }}
+  template:
+    metadata:
+      labels:
+        app: "{{ .Chart.Name }}-{{ .Values.backend.name }}"
+    spec:
+      containers:
+      - name: "{{ .Chart.Name }}-{{ .Values.backend.name }}"
+        image: "{{ .Values.repository }}/{{ .Chart.Name }}/{{ .Values.backend.name }}"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: {{ .Values.service.internalPort | int }}
+        env:
+          {{- range .Values.backend.configMapRef }}
+          - configMapRef:
+              name: {{ $.Chart.Name }}-{{ . }}-cm
+          {{- end }}
+          {{- range .Values.backend.secretRef }}
+          - secretRef:
+              name: {{ $.Chart.Name }}-{{ . }}-sk
+          {{- end }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.livenessProbe.httpGet.path }}
+            port: {{ .Values.livenessProbe.httpGet.port | int }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.readinessProbe.httpGet.path }}
+            port: {{ .Values.readinessProbe.httpGet.port | int }}
+        resources:     
+{{ toYaml .Values.resources | indent 10 }}

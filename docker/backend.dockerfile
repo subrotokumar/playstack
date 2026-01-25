@@ -9,6 +9,7 @@ COPY ./backend/ ./backend/
 COPY ./libs/core/ ./libs/core/
 COPY ./libs/idp/ ./libs/idp/
 COPY ./libs/db/ ./libs/db/
+COPY ./libs/storage/ ./libs/storage/
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -o backend ./backend/main.go

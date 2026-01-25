@@ -8,6 +8,7 @@ tmp_dir = "tmp"
   args_bin = []
   bin = "./tmp/backend"
   cmd = "task swagger:init && task backend:build"
+  # cmd = "go build -o ./tmp/backend ./backend"
   delay = 1000
   entrypoint = ["./tmp/backend"]
   exclude_dir = ["assets", "tmp", "vendor", "testdata", "backend/swagger"]

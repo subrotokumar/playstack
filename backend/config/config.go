@@ -8,7 +8,7 @@ import (
 
 type Config struct {
 	App struct {
-		Name string   `yaml:"name" envconfig:"SERVICE_NAME" default:"glitchr"`
+		Name string   `yaml:"name" envconfig:"SERVICE_NAME" default:"glitchr-backend"`
 		Port string   `yaml:"port" envconfig:"SERVICE_PORT" default:"8080"`
 		Host string   `yaml:"host" envconfig:"SERVICE_HOST" default:"0.0.0.0"`
 		Env  core.Env `yaml:"env" envconfig:"SERVICE_ENV" default:"dev"`
@@ -40,7 +40,7 @@ type Config struct {
 	} `yaml:"cognito"`
 	S3 struct {
 		RawMediaBucket string `yaml:"raw_media_bucket" envconfig:"RAW_MEDIA_BUCKET"`
-		MediaBucket    string `yaml:"raw_media_bucket" envconfig:"RAW_MEDIA_BUCKET"`
+		MediaBucket    string `yaml:"media_bucket" envconfig:"MEDIA_BUCKET"`
 	} `yaml:"s3"`
 }
 
