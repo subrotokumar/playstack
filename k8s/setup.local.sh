@@ -78,4 +78,4 @@ helm install keda kedacore/keda --namespace keda --create-namespace
 kubectl create namespace glitchr
 
 # Creare App Gateway
-kubectl apply -f ./gateway.yml
+kubectl apply -f ./k8s/gateway.yaml

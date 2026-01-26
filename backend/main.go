@@ -21,6 +21,12 @@ import (
 
 // @externalDocs.description	OpenAPI
 // @externalDocs.url			https://swagger.io/resources/open-api/
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+
+// @securityDefinitions.basic BasicAuth
 func main() {
 	svc := server.NewHTTPServer()
 	err := svc.Run()

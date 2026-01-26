@@ -21,25 +21,25 @@ type Config struct {
 		Level *string `yaml:"level" envconfig:"LOG_LEVEL" default:"INFO"`
 	} `yaml:"log"`
 	Database struct {
-		Username string `yaml:"user" envconfig:"DB_USERNAME"`
-		Password string `yaml:"pass" envconfig:"DB_PASSWORD"`
-		Host     string `yaml:"host" envconfig:"DB_HOST"`
-		Port     string `yaml:"port" envconfig:"DB_PORT" default:"5432"`
-		DbName   string `yaml:"name" envconfig:"DB_NAME"`
+		Username string `yaml:"user" envconfig:"DB_USERNAME" required:"true"`
+		Password string `yaml:"pass" envconfig:"DB_PASSWORD" required:"true"`
+		Host     string `yaml:"host" envconfig:"DB_HOST" required:"true"`
+		Port     string `yaml:"port" envconfig:"DB_PORT" default:"5432" required:"true"`
+		DbName   string `yaml:"name" envconfig:"DB_NAME" required:"true"`
 		SslMode  string `yaml:"ssl_mode" envconfig:"DB_SSL_MODE"`
 		MaxConn  int32  `yaml:"max_conn" envconfig:"DB_MAX_CONN" default:"10"`
 		MinConn  int32  `yaml:"min_conn" envconfig:"DB_MIN_CONN" default:"2"`
 	} `yaml:"database"`
 	Aws struct {
-		Region string `yaml:"region" envconfig:"AWS_REGION" default:"ap-south-1"`
+		Region string `yaml:"region" envconfig:"AWS_REGION" required:"true"`
 	} `yaml:"aws"`
 	Cognito struct {
-		ClientID     string `yaml:"client_id" envconfig:"COGNITO_CLIENT_ID"`
-		ClientSecret string `yaml:"client_secret" envconfig:"COGNITO_CLIENT_SECRET"`
-		UserPoolID   string `yaml:"user_pool_id" envconfig:"COGNITO_USER_POOL_ID"`
+		ClientID     string `yaml:"client_id" envconfig:"COGNITO_CLIENT_ID" required:"true"`
+		ClientSecret string `yaml:"client_secret" envconfig:"COGNITO_CLIENT_SECRET" required:"true"`
+		UserPoolID   string `yaml:"user_pool_id" envconfig:"COGNITO_USER_POOL_ID" required:"true"`
 	} `yaml:"cognito"`
 	S3 struct {
-		RawMediaBucket string `yaml:"raw_media_bucket" envconfig:"RAW_MEDIA_BUCKET"`
+		RawMediaBucket string `yaml:"raw_media_bucket" envconfig:"RAW_MEDIA_BUCKET" required:"true"`
 		MediaBucket    string `yaml:"media_bucket" envconfig:"MEDIA_BUCKET"`
 	} `yaml:"s3"`
 }

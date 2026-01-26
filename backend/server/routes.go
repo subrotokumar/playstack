@@ -110,7 +110,7 @@ func (s *Server) resisterMetricsRoutes(e *echo.Echo) {
 }
 
 func (s *Server) UserAuthMiddleware() echo.MiddlewareFunc {
-	return idp.NewAuthMiddleware(s.cfg.Aws.Region, s.cfg.Cognito.UserPoolID, s.cfg.Cognito.ClientID).AuthMiddleware()
+	return idp.NewAuthMiddleware(s.cfg.Aws.Region, s.cfg.Cognito.UserPoolID, s.cfg.Cognito.ClientID, s.log).AuthMiddleware()
 }
 
 func (s *Server) getBasicAuthMiddleware() echo.MiddlewareFunc {

@@ -2,6 +2,6 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: "{{ .Chart.Name }}-{{ .Values.backend.name }}-cm"
-  namespace: "{{ .Values.namespace }}"
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
 data:
   SERVICE_ENV: {{ .Values.environment }} 

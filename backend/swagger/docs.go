@@ -269,9 +269,371 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/internal/media/videos/{videoId}": {
+            "patch": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "Updates title, status, or duration of a video",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media-internal"
+                ],
+                "summary": "Update video metadata (internal)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Video ID",
+                        "name": "videoId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Metadata update payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.UpdateMetadataRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.AssetsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.AssetsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/media/videos": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns videos with READY status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media"
+                ],
+                "summary": "List ready videos",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.GetVideoResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.GetVideoResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/media/videos/signed-url": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a video record and returns a presigned POST URL for uploading raw media",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media"
+                ],
+                "summary": "Create presigned URL for video upload",
+                "parameters": [
+                    {
+                        "description": "Video asset metadata",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.AssetsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.AssetsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.AssetsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.AssetsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/media/videos/{videoId}/thumbnail/signed-url": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a presigned PUT URL for uploading a video thumbnail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "media"
+                ],
+                "summary": "Create presigned URL for thumbnail upload",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Video ID",
+                        "name": "videoId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Thumbnail metadata",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.ThumbnailAssetsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.ThumbnailAssetsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.AssetsResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/server.AssetsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.AssetsResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "db.Video": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "$ref": "#/definitions/pgtype.Timestamp"
+                },
+                "duration_sec": {
+                    "$ref": "#/definitions/pgtype.Int4"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/db.VideoStatus"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "db.VideoStatus": {
+            "type": "string",
+            "enum": [
+                "PREUPLOAD",
+                "UPLOADED",
+                "PROCESSING",
+                "READY",
+                "FAILED"
+            ],
+            "x-enum-varnames": [
+                "VideoStatusPREUPLOAD",
+                "VideoStatusUPLOADED",
+                "VideoStatusPROCESSING",
+                "VideoStatusREADY",
+                "VideoStatusFAILED"
+            ]
+        },
+        "pgtype.InfinityModifier": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                0,
+                -1
+            ],
+            "x-enum-varnames": [
+                "Infinity",
+                "Finite",
+                "NegativeInfinity"
+            ]
+        },
+        "pgtype.Int4": {
+            "type": "object",
+            "properties": {
+                "int32": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "pgtype.Timestamp": {
+            "type": "object",
+            "properties": {
+                "infinityModifier": {
+                    "$ref": "#/definitions/pgtype.InfinityModifier"
+                },
+                "time": {
+                    "description": "Time zone will be ignored when encoding to PostgreSQL.",
+                    "type": "string"
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "server.Asset": {
+            "type": "object",
+            "properties": {
+                "content_type": {
+                    "type": "string"
+                },
+                "href": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "original_name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "server.AssetsRequest": {
+            "type": "object",
+            "required": [
+                "content_type",
+                "name",
+                "size"
+            ],
+            "properties": {
+                "content_type": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "server.AssetsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/server.AssetsResponseData"
+                },
+                "error": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.AssetsResponseData": {
+            "type": "object",
+            "properties": {
+                "asset": {
+                    "$ref": "#/definitions/server.Asset"
+                },
+                "form": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "header": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "upload_url": {
+                    "type": "string"
+                }
+            }
+        },
         "server.AuthResponse": {
             "type": "object",
             "properties": {
@@ -313,6 +675,21 @@ const docTemplate = `{
                 },
                 "total_conns": {
                     "type": "integer"
+                }
+            }
+        },
+        "server.GetVideoResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/db.Video"
+                    }
+                },
+                "error": {},
+                "message": {
+                    "type": "string"
                 }
             }
         },
@@ -397,6 +774,83 @@ const docTemplate = `{
                 "StatusUp",
                 "StatusDown"
             ]
+        },
+        "server.ThumbnailAssetsRequest": {
+            "type": "object",
+            "required": [
+                "content_type",
+                "name",
+                "size"
+            ],
+            "properties": {
+                "content_type": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "server.ThumbnailAssetsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/server.ThumbnailAssetsResponseData"
+                },
+                "error": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.ThumbnailAssetsResponseData": {
+            "type": "object",
+            "properties": {
+                "upload_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.UpdateMetadataRequest": {
+            "type": "object",
+            "properties": {
+                "duration_sec": {
+                    "type": "integer"
+                },
+                "status": {
+                    "enum": [
+                        "PREUPLOAD",
+                        "UPLOADED",
+                        "PROCESSING",
+                        "READY",
+                        "FAILED"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/db.VideoStatus"
+                        }
+                    ]
+                },
+                "title": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BasicAuth": {
+            "type": "basic"
+        },
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     },
     "externalDocs": {

@@ -1,5 +1,114 @@
 basePath: /
 definitions:
+  db.Video:
+    properties:
+      created_at:
+        $ref: '#/definitions/pgtype.Timestamp'
+      duration_sec:
+        $ref: '#/definitions/pgtype.Int4'
+      id:
+        type: string
+      status:
+        $ref: '#/definitions/db.VideoStatus'
+      title:
+        type: string
+      user_id:
+        type: string
+    type: object
+  db.VideoStatus:
+    enum:
+    - PREUPLOAD
+    - UPLOADED
+    - PROCESSING
+    - READY
+    - FAILED
+    type: string
+    x-enum-varnames:
+    - VideoStatusPREUPLOAD
+    - VideoStatusUPLOADED
+    - VideoStatusPROCESSING
+    - VideoStatusREADY
+    - VideoStatusFAILED
+  pgtype.InfinityModifier:
+    enum:
+    - 1
+    - 0
+    - -1
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - Infinity
+    - Finite
+    - NegativeInfinity
+  pgtype.Int4:
+    properties:
+      int32:
+        format: int32
+        type: integer
+      valid:
+        type: boolean
+    type: object
+  pgtype.Timestamp:
+    properties:
+      infinityModifier:
+        $ref: '#/definitions/pgtype.InfinityModifier'
+      time:
+        description: Time zone will be ignored when encoding to PostgreSQL.
+        type: string
+      valid:
+        type: boolean
+    type: object
+  server.Asset:
+    properties:
+      content_type:
+        type: string
+      href:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      original_name:
+        type: string
+      size:
+        type: integer
+    type: object
+  server.AssetsRequest:
+    properties:
+      content_type:
+        type: string
+      name:
+        type: string
+      size:
+        type: integer
+    required:
+    - content_type
+    - name
+    - size
+    type: object
+  server.AssetsResponse:
+    properties:
+      data:
+        $ref: '#/definitions/server.AssetsResponseData'
+      error: {}
+      message:
+        type: string
+    type: object
+  server.AssetsResponseData:
+    properties:
+      asset:
+        $ref: '#/definitions/server.Asset'
+      form:
+        additionalProperties:
+          type: string
+        type: object
+      header:
+        additionalProperties:
+          type: string
+        type: object
+      upload_url:
+        type: string
+    type: object
   server.AuthResponse:
     properties:
       error: {}
@@ -28,6 +137,16 @@ definitions:
         $ref: '#/definitions/server.Status'
       total_conns:
         type: integer
+    type: object
+  server.GetVideoResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/db.Video'
+        type: array
+      error: {}
+      message:
+        type: string
     type: object
   server.HealthResponse:
     properties:
@@ -84,6 +203,50 @@ definitions:
     x-enum-varnames:
     - StatusUp
     - StatusDown
+  server.ThumbnailAssetsRequest:
+    properties:
+      content_type:
+        type: string
+      name:
+        type: string
+      size:
+        type: integer
+    required:
+    - content_type
+    - name
+    - size
+    type: object
+  server.ThumbnailAssetsResponse:
+    properties:
+      data:
+        $ref: '#/definitions/server.ThumbnailAssetsResponseData'
+      error: {}
+      message:
+        type: string
+    type: object
+  server.ThumbnailAssetsResponseData:
+    properties:
+      upload_url:
+        type: string
+    type: object
+  server.UpdateMetadataRequest:
+    properties:
+      duration_sec:
+        type: integer
+      status:
+        allOf:
+        - $ref: '#/definitions/db.VideoStatus'
+        enum:
+        - PREUPLOAD
+        - UPLOADED
+        - PROCESSING
+        - READY
+        - FAILED
+      title:
+        type: string
+      user_id:
+        type: string
+    type: object
 externalDocs:
   description: OpenAPI
   url: https://swagger.io/resources/open-api/
@@ -261,4 +424,141 @@ paths:
       summary: Readiness probe
       tags:
       - health
+  /internal/media/videos/{videoId}:
+    patch:
+      consumes:
+      - application/json
+      description: Updates title, status, or duration of a video
+      parameters:
+      - description: Video ID
+        in: path
+        name: videoId
+        required: true
+        type: string
+      - description: Metadata update payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/server.UpdateMetadataRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.AssetsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.AssetsResponse'
+      security:
+      - BasicAuth: []
+      summary: Update video metadata (internal)
+      tags:
+      - media-internal
+  /media/videos:
+    get:
+      description: Returns videos with READY status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.GetVideoResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.GetVideoResponse'
+      security:
+      - BearerAuth: []
+      summary: List ready videos
+      tags:
+      - media
+  /media/videos/{videoId}/thumbnail/signed-url:
+    put:
+      consumes:
+      - application/json
+      description: Returns a presigned PUT URL for uploading a video thumbnail
+      parameters:
+      - description: Video ID
+        in: path
+        name: videoId
+        required: true
+        type: string
+      - description: Thumbnail metadata
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/server.ThumbnailAssetsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.ThumbnailAssetsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.AssetsResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/server.AssetsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.AssetsResponse'
+      security:
+      - BearerAuth: []
+      summary: Create presigned URL for thumbnail upload
+      tags:
+      - media
+  /media/videos/signed-url:
+    post:
+      consumes:
+      - application/json
+      description: Creates a video record and returns a presigned POST URL for uploading
+        raw media
+      parameters:
+      - description: Video asset metadata
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/server.AssetsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.AssetsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.AssetsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.AssetsResponse'
+      security:
+      - BearerAuth: []
+      summary: Create presigned URL for video upload
+      tags:
+      - media
+securityDefinitions:
+  BasicAuth:
+    type: basic
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

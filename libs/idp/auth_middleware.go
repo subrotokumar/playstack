@@ -20,9 +20,10 @@ type AuthMiddleware struct {
 	clientID   string
 	issuer     string
 	keyFunc    keyfunc.Keyfunc
+	log        *core.Logger
 }
 
-func NewAuthMiddleware(region, userPoolID, clientId string) *AuthMiddleware {
+func NewAuthMiddleware(region, userPoolID, clientId string, log *core.Logger) *AuthMiddleware {
 	ctx, cancel := context.WithDeadline(
 		context.Background(),
 		time.Now().Add(2*time.Second),
@@ -45,6 +46,7 @@ func NewAuthMiddleware(region, userPoolID, clientId string) *AuthMiddleware {
 			region, userPoolID,
 		),
 		keyFunc: jwksKeyFunc,
+		log:     log,
 	}
 }
 

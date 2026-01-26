@@ -13,7 +13,7 @@ COPY ./libs/core/ ./libs/core/
 COPY ./libs/idp/ ./libs/idp/
 COPY ./libs/db/ ./libs/db/
 COPY ./libs/storage/ ./libs/storage/
-COPY ./taskfile.yml .
+COPY ./taskfile.yaml .
 
 COPY .air.toml .
 CMD ["air"]

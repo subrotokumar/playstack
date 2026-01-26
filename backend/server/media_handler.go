@@ -61,22 +61,42 @@ type (
 		Size        int64  `json:"size" validate:"required"`
 		ContentType string `json:"content_type" validate:"required"`
 	}
+	ThumbnailAssetsResponseData struct {
+		UploadUrl string `json:"upload_url"`
+	}
 	ThumbnailAssetsResponse struct {
-		Data struct {
-			UploadUrl string `json:"upload_url"`
-		} `json:"data,omitempty"`
-		Message string `json:"message,omitempty"`
-		Error   any    `json:"error,omitempty"`
+		Data    ThumbnailAssetsResponseData `json:"data,omitempty"`
+		Message string                      `json:"message,omitempty"`
+		Error   any                         `json:"error,omitempty"`
 	}
 
 	UpdateMetadataRequest struct {
 		UserID      uuid.UUID       `json:"user_id"`
 		Title       *string         `json:"title"`
-		Status      *db.VideoStatus `json:"Status" validate:"omitempty,oneof='PREUPLOAD' 'UPLOADED' 'PROCESSING' 'READY' 'FAILED'"`
+		Status      *db.VideoStatus `json:"status" validate:"omitempty,oneof='PREUPLOAD' 'UPLOADED' 'PROCESSING' 'READY' 'FAILED'"`
 		DurationSec *int32          `json:"duration_sec"`
+	}
+
+	GetVideoResponse struct {
+		Data    []db.Video `json:"data"`
+		Message string     `json:"message,omitempty"`
+		Error   any        `json:"error,omitempty"`
 	}
 )
 
+// VideoAssetsHandler godoc
+//
+// @Summary      Create presigned URL for video upload
+// @Description Creates a video record and returns a presigned POST URL for uploading raw media
+// @Tags         media
+// @Accept       json
+// @Produce      json
+// @Param        body  body      AssetsRequest  true  "Video asset metadata"
+// @Success      200   {object}  AssetsResponse
+// @Failure      400   {object}  AssetsResponse
+// @Failure      500   {object}  AssetsResponse
+// @Security     BearerAuth
+// @Router       /media/videos/signed-url [post]
 func (s *Server) VideoAssetsHandler(c echo.Context) error {
 	body := AssetsRequest{}
 	if err := RequestBody(c, &body); err != nil {
@@ -127,6 +147,21 @@ func (s *Server) VideoAssetsHandler(c echo.Context) error {
 	})
 }
 
+// ThumbnailSignedUrlHandler godoc
+//
+// @Summary      Create presigned URL for thumbnail upload
+// @Description Returns a presigned PUT URL for uploading a video thumbnail
+// @Tags         media
+// @Accept       json
+// @Produce      json
+// @Param        videoId  path      string                 true  "Video ID"
+// @Param        body     body      ThumbnailAssetsRequest true  "Thumbnail metadata"
+// @Success      200      {object}  ThumbnailAssetsResponse
+// @Failure      400      {object}  AssetsResponse
+// @Failure      403      {object}  AssetsResponse
+// @Failure      500      {object}  AssetsResponse
+// @Security     BearerAuth
+// @Router       /media/videos/{videoId}/thumbnail/signed-url [put]
 func (s *Server) ThumbnailSignedUrlHandler(c echo.Context) error {
 	userId := c.Get("sub").(uuid.UUID)
 	videoId, err := uuid.Parse(c.Param("videoId"))
@@ -171,8 +206,22 @@ func (s *Server) ThumbnailSignedUrlHandler(c echo.Context) error {
 	})
 }
 
+// UpdateMediaInternalHandler godoc
+//
+// @Summary      Update video metadata (internal)
+// @Description Updates title, status, or duration of a video
+// @Tags         media-internal
+// @Accept       json
+// @Produce      json
+// @Param        videoId  path      string                 true  "Video ID"
+// @Param        body     body      UpdateMetadataRequest  true  "Metadata update payload"
+// @Success      200      {string}  string "OK"
+// @Failure      400      {object}  AssetsResponse
+// @Failure      500      {object}  AssetsResponse
+// @Security     BasicAuth
+// @Router       /internal/media/videos/{videoId} [patch]
 func (s *Server) UpdateMediaInternalHandler(c echo.Context) error {
-	videoID, err := uuid.Parse(c.Param("id"))
+	videoID, err := uuid.Parse(c.Param("videoId"))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, AssetsResponse{Error: ErrInvalidVideoID})
 	}
@@ -212,6 +261,16 @@ func (s *Server) UpdateMediaInternalHandler(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// GetVideoHandler godoc
+//
+// @Summary      List ready videos
+// @Description Returns videos with READY status
+// @Tags         media
+// @Produce      json
+// @Success      200   {object}   GetVideoResponse
+// @Failure      500   {object}  GetVideoResponse
+// @Security     BearerAuth
+// @Router       /media/videos [get]
 func (s *Server) GetVideoHandler(c echo.Context) error {
 	resp, err := s.store.SearchVideo(c.Request().Context(), db.SearchVideoParams{
 		Status: db.NullVideoStatus{VideoStatus: db.VideoStatusREADY},
@@ -219,8 +278,10 @@ func (s *Server) GetVideoHandler(c echo.Context) error {
 
 	if err != nil {
 		s.log.Error(ErrFailedToFetchVideo, "err", err)
-		return c.JSON(http.StatusInternalServerError, AssetsResponse{Error: ErrFailedToFetchVideo})
+		return c.JSON(http.StatusInternalServerError, GetVideoResponse{Error: ErrFailedToFetchVideo})
 	}
 
-	return c.JSON(http.StatusOK, resp)
+	return c.JSON(http.StatusOK, GetVideoResponse{
+		Data: resp,
+	})
 }

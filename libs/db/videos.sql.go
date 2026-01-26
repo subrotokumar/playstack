@@ -230,7 +230,7 @@ func (q *Queries) ListVideosByUserPaginated(ctx context.Context, arg ListVideosB
 const patchVideos = `-- name: PatchVideos :exec
 UPDATE videos
 SET 
-  title = COALESCE($1, title),
+  title = COALESCE($1::text, title),
   status = COALESCE($2, status),
   duration_sec = COALESCE($3, duration_sec)
 WHERE
@@ -263,20 +263,20 @@ WHERE
     user_id = COALESCE($1, user_id)
 AND status  = COALESCE($2, status)
 AND (
-    $3 IS NULL
+    $3::TEXT IS NULL
     OR title ILIKE '%' || $3 || '%'
 )
 ORDER BY created_at DESC
-LIMIT COALESCE($5, 30)
-OFFSET COALESCE($4, 0) * COALESCE($5, 30)
+LIMIT COALESCE($5::INT, 30)
+OFFSET COALESCE($4::INT, 0) * COALESCE($5::INT, 30)
 `
 
 type SearchVideoParams struct {
 	UserID pgtype.UUID     `json:"user_id"`
 	Status NullVideoStatus `json:"status"`
-	Title  interface{}     `json:"title"`
-	Page   interface{}     `json:"page"`
-	Size   interface{}     `json:"size"`
+	Title  pgtype.Text     `json:"title"`
+	Page   pgtype.Int4     `json:"page"`
+	Size   pgtype.Int4     `json:"size"`
 }
 
 func (q *Queries) SearchVideo(ctx context.Context, arg SearchVideoParams) ([]Video, error) {

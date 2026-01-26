@@ -79,6 +79,7 @@ tasks:
       - sops -e -i .env
       - sops -e -i terraform/environments/terraform.tfvars
       - sops -e -i k8s/helm/values.secret.yaml
+      - sops -e -i example.env
 
   decrypt:
     silent: true
@@ -87,6 +88,7 @@ tasks:
       - sops -d -i .env
       - sops -d -i terraform/environments/terraform.tfvars
       - sops -d -i k8s/helm/values.secret.yaml
+      - sops -d -i example.env
 
   tf:plan:
     silent: true
@@ -157,7 +159,7 @@ tasks:
     desc: Generate Swagger documation of Gen Service
     cmds:
       - |
-        swag init \
+        swag init --parseDependency \
         --parseInternal \
         --packageName swagger \
         --dir ./backend/server \

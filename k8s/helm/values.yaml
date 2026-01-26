@@ -5,7 +5,8 @@ environment: dev
 
 backend:
   name: backend
-  image: glitchr-backend
+  image: glitchr/backend
+  imagePullPolicy: always
   configMapRef: 
     - backend
   secretRef:

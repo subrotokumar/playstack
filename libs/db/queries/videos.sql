@@ -32,15 +32,15 @@ LIMIT $2 OFFSET $3;
 SELECT *
 FROM videos
 WHERE
-    user_id = COALESCE(sqlc.narg(user_id), user_id)
-AND status  = COALESCE(sqlc.narg(status), status)
+    user_id = COALESCE(sqlc.narg('user_id'), user_id)
+AND status  = COALESCE(sqlc.narg('status'), status)
 AND (
-    sqlc.narg(title) IS NULL
-    OR title ILIKE '%' || sqlc.narg(title) || '%'
+    sqlc.narg('title')::TEXT IS NULL
+    OR title ILIKE '%' || sqlc.narg('title') || '%'
 )
 ORDER BY created_at DESC
-LIMIT COALESCE(sqlc.narg(size), 30)
-OFFSET COALESCE(sqlc.narg(page), 0) * COALESCE(sqlc.narg(size), 30);
+LIMIT COALESCE(sqlc.narg('size')::INT, 30)
+OFFSET COALESCE(sqlc.narg('page')::INT, 0) * COALESCE(sqlc.narg('size')::INT, 30);
 
 
 -- name: UpdateVideoStatus :one
@@ -81,8 +81,8 @@ ORDER BY created_at ASC;
 -- name: PatchVideos :exec
 UPDATE videos
 SET 
-  title = COALESCE(sqlc.narg(title), title),
-  status = COALESCE(sqlc.narg(status), status),
-  duration_sec = COALESCE(sqlc.narg(duration_sec), duration_sec)
+  title = COALESCE(sqlc.narg('title')::text, title),
+  status = COALESCE(sqlc.narg('status'), status),
+  duration_sec = COALESCE(sqlc.narg('duration_sec'), duration_sec)
 WHERE
   id = @id AND user_id = @user_id;

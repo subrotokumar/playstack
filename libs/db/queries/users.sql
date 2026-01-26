@@ -1,9 +1,11 @@
 -- name: CreateUser :one
 INSERT INTO users (
     id,
-    email
+    name,
+    email,
+    created_at
 ) VALUES (
-    $1, $2
+    $1, $2, $3, now()
 )
 RETURNING *;
 

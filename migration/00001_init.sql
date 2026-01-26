@@ -12,14 +12,15 @@ CREATE TYPE video_status AS ENUM (
 
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS videos (
     id UUID PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    title VARCHAR(255) NOT NULL,
+    title TEXT NOT NULL,
     status video_status NOT NULL,
     duration_sec INT,
     created_at TIMESTAMP NOT NULL DEFAULT now()

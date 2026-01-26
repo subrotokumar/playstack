@@ -13,7 +13,7 @@ COPY ./libs/storage/ ./libs/storage/
 
 RUN go mod tidy && \
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -o ./tmp/backend ./backend/main.go
+    go build -ldflags="-s -w" -o ./tmp/backend ./backend/main.go
 
 # ---------- Runtime ----------
 FROM gcr.io/distroless/static-debian12:nonroot
