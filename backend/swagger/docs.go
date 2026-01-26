@@ -296,9 +296,32 @@ const docTemplate = `{
                 }
             }
         },
+        "server.DatabaseHealthStatus": {
+            "type": "object",
+            "properties": {
+                "acquired_conns": {
+                    "type": "integer"
+                },
+                "idle_conns": {
+                    "type": "integer"
+                },
+                "max_conns": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/server.Status"
+                },
+                "total_conns": {
+                    "type": "integer"
+                }
+            }
+        },
         "server.HealthResponse": {
             "type": "object",
             "properties": {
+                "db": {
+                    "$ref": "#/definitions/server.DatabaseHealthStatus"
+                },
                 "status": {
                     "$ref": "#/definitions/server.Status"
                 }

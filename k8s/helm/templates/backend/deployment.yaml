@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata: 
   name: "{{ .Chart.Name }}-{{ .Values.backend.name }}"
-  namespace: "{{ .Values.namespace }}"
   labels:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
 spec:
@@ -21,7 +20,7 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: {{ .Values.service.internalPort | int }}
-        env:
+        envFrom:
           {{- range .Values.backend.configMapRef }}
           - configMapRef:
               name: {{ $.Chart.Name }}-{{ . }}-cm

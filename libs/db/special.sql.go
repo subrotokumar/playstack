@@ -56,6 +56,17 @@ func (q *Queries) CountVideosByUser(ctx context.Context, userID uuid.UUID) (int6
 	return video_count, err
 }
 
+const getTimestamp = `-- name: GetTimestamp :one
+SELECT now()
+`
+
+func (q *Queries) GetTimestamp(ctx context.Context) (interface{}, error) {
+	row := q.db.QueryRow(ctx, getTimestamp)
+	var now interface{}
+	err := row.Scan(&now)
+	return now, err
+}
+
 const getVideoWithUser = `-- name: GetVideoWithUser :one
 SELECT
     v.id, v.user_id, v.title, v.status, v.duration_sec, v.created_at,

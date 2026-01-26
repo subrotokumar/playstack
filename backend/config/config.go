@@ -24,9 +24,9 @@ type Config struct {
 		Username string `yaml:"user" envconfig:"DB_USERNAME"`
 		Password string `yaml:"pass" envconfig:"DB_PASSWORD"`
 		Host     string `yaml:"host" envconfig:"DB_HOST"`
-		Port     string `yaml:"port" envconfig:"DB_PORT"`
+		Port     string `yaml:"port" envconfig:"DB_PORT" default:"5432"`
 		DbName   string `yaml:"name" envconfig:"DB_NAME"`
-		SslMode  string `yaml:"ssl_mode" envconfig:"DB_SSL_Mode"`
+		SslMode  string `yaml:"ssl_mode" envconfig:"DB_SSL_MODE"`
 		MaxConn  int32  `yaml:"max_conn" envconfig:"DB_MAX_CONN" default:"10"`
 		MinConn  int32  `yaml:"min_conn" envconfig:"DB_MIN_CONN" default:"2"`
 	} `yaml:"database"`

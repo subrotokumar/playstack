@@ -2,20 +2,32 @@
 -- +goose StatementBegin
 SELECT 'up SQL query';
 
-CREATE TYPE job_status AS ENUM (
-    'PENDING',
-    'RUNNING',
-    'SUCCESS',
-    'FAILED'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_type WHERE typname = 'job_status'
+    ) THEN
+        CREATE TYPE job_status AS ENUM (
+            'PENDING',
+            'RUNNING',
+            'SUCCESS',
+            'FAILED'
+        );
+    END IF;
 
-CREATE TYPE video_resolution AS ENUM (
-    '240p',
-    '360p',
-    '480p',
-    '720p',
-    '1080p'
-);
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_type WHERE typname = 'video_resolution'
+    ) THEN
+        CREATE TYPE video_resolution AS ENUM (
+            '240p',
+            '360p',
+            '480p',
+            '720p',
+            '1080p'
+        );
+    END IF;
+END$$;
+
 
 CREATE TABLE IF NOT EXISTS video_renditions (
     id UUID PRIMARY KEY,

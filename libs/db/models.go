@@ -12,95 +12,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type JobStatus string
-
-const (
-	JobStatusPENDING JobStatus = "PENDING"
-	JobStatusRUNNING JobStatus = "RUNNING"
-	JobStatusSUCCESS JobStatus = "SUCCESS"
-	JobStatusFAILED  JobStatus = "FAILED"
-)
-
-func (e *JobStatus) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = JobStatus(s)
-	case string:
-		*e = JobStatus(s)
-	default:
-		return fmt.Errorf("unsupported scan type for JobStatus: %T", src)
-	}
-	return nil
-}
-
-type NullJobStatus struct {
-	JobStatus JobStatus `json:"job_status"`
-	Valid     bool      `json:"valid"` // Valid is true if JobStatus is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullJobStatus) Scan(value interface{}) error {
-	if value == nil {
-		ns.JobStatus, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.JobStatus.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullJobStatus) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.JobStatus), nil
-}
-
-type VideoResolution string
-
-const (
-	VideoResolution240p  VideoResolution = "240p"
-	VideoResolution360p  VideoResolution = "360p"
-	VideoResolution480p  VideoResolution = "480p"
-	VideoResolution720p  VideoResolution = "720p"
-	VideoResolution1080p VideoResolution = "1080p"
-)
-
-func (e *VideoResolution) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = VideoResolution(s)
-	case string:
-		*e = VideoResolution(s)
-	default:
-		return fmt.Errorf("unsupported scan type for VideoResolution: %T", src)
-	}
-	return nil
-}
-
-type NullVideoResolution struct {
-	VideoResolution VideoResolution `json:"video_resolution"`
-	Valid           bool            `json:"valid"` // Valid is true if VideoResolution is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullVideoResolution) Scan(value interface{}) error {
-	if value == nil {
-		ns.VideoResolution, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.VideoResolution.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullVideoResolution) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.VideoResolution), nil
-}
-
 type VideoStatus string
 
 const (
@@ -157,7 +68,7 @@ type Manifest struct {
 type TranscodingJob struct {
 	ID           uuid.UUID        `json:"id"`
 	VideoID      uuid.UUID        `json:"video_id"`
-	Status       JobStatus        `json:"status"`
+	Status       interface{}      `json:"status"`
 	ErrorMessage pgtype.Text      `json:"error_message"`
 	CreatedAt    pgtype.Timestamp `json:"created_at"`
 	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
@@ -181,7 +92,7 @@ type Video struct {
 type VideoRendition struct {
 	ID          uuid.UUID        `json:"id"`
 	VideoID     uuid.UUID        `json:"video_id"`
-	Resolution  VideoResolution  `json:"resolution"`
+	Resolution  interface{}      `json:"resolution"`
 	BitrateKbps int32            `json:"bitrate_kbps"`
 	S3Key       string           `json:"s3_key"`
 	CreatedAt   pgtype.Timestamp `json:"created_at"`

@@ -1,7 +1,8 @@
 docker_build(
-  'kind-registry:5000/glitchr/backend',
-  context='../..',
-  dockerfile='docker/backend.local.dockerfile',
+  'localhost:5001/glitchr/backend',
+  context='.',
+  dockerfile='docker/backend.dockerfile',
+  # dockerfile='docker/backend.local.dockerfile',
   live_update=[
     sync('./backend', '/app/backend')
   ],
@@ -9,9 +10,9 @@ docker_build(
 
 k8s_yaml(
   helm(
-    '../helm',
+    'k8s/helm',
     name='glitchr',
     namespace='glitchr',
-    values=['k8s/helm/values.local.yaml'],
+    values=['k8s/helm/values.yaml', 'k8s/helm/values.secret.yaml'],
   )
 )

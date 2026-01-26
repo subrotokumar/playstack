@@ -1,6 +1,6 @@
 replicaCount: 1
 namespace: glitchr
-repository: kind-registry:5000
+repository: localhost:5001
 environment: dev
 
 backend:
@@ -9,6 +9,7 @@ backend:
   configMapRef: 
     - backend
   secretRef:
+    - basicauth
     - database
     - aws
     - cognito

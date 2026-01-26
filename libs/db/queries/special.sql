@@ -23,3 +23,6 @@ WHERE user_id = $1;
 SELECT status, COUNT(*) AS count
 FROM videos
 GROUP BY status;
+
+-- name: GetTimestamp :one
+SELECT now();

@@ -34,7 +34,7 @@ SELECT 'down SQL query';
 
 DROP INDEX IF EXISTS idx_videos_user_id;
 
-DROP TABLE IF EXISTS videos;
+DROP TABLE IF EXISTS videos CASCADE;
 DROP TABLE IF EXISTS users;
 
 DROP TYPE IF EXISTS video_status;

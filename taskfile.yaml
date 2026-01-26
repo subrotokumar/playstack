@@ -3,6 +3,10 @@ version: '3'
 dotenv:
   - .env
 
+vars:
+  REGISTRY: localhost:5001
+  REPOSITORY: glitchr
+
 tasks:
   default:
     aliases: [list]
@@ -14,7 +18,7 @@ tasks:
   backend:build:
     silent: true
     desc: "Build executable for backend"
-    cmds: [go build -o ./tmp/backend ./backend]
+    cmds: [go build -ldflags="-s -w" -o ./tmp/backend ./backend]
 
   backend:run:
     silent: true
@@ -27,6 +31,14 @@ tasks:
     aliases: [backend, air]
     desc: "Run the Go server with development mode"
     cmds: [air]
+
+  backend:buildx:
+    dir: .
+    silent: false
+    aliases: [backend, air]
+    desc: "Build image for backend service"
+    cmds: 
+      - docker buildx build . -t {{ .REGISTRY }}/{{ .REPOSITORY }}/backend -f docker/backend.dockerfile
 
   transcoder:buildx:
     silent: true

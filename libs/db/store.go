@@ -31,3 +31,15 @@ func NewPgxPool(conn string, minConn, maxConn int32) (*pgxpool.Pool, error) {
 func (store *SQLStore) Close() {
 	store.connPool.Close()
 }
+
+func (store *SQLStore) Ping(ctx context.Context) error {
+	return store.connPool.Ping(ctx)
+}
+
+func (store *SQLStore) Acquire(ctx context.Context) (c *pgxpool.Conn, err error) {
+	return store.connPool.Acquire(ctx)
+}
+
+func (store *SQLStore) Stat() *pgxpool.Stat {
+	return store.connPool.Stat()
+}

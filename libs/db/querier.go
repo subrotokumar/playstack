@@ -17,6 +17,7 @@ type Querier interface {
 	CreateVideo(ctx context.Context, arg CreateVideoParams) (Video, error)
 	DeleteUser(ctx context.Context, id uuid.UUID) error
 	DeleteVideo(ctx context.Context, id uuid.UUID) error
+	GetTimestamp(ctx context.Context) (interface{}, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
 	GetVideoByID(ctx context.Context, id uuid.UUID) (Video, error)

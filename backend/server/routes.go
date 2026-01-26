@@ -26,7 +26,9 @@ func (s *Server) Mux() *echo.Echo {
 }
 
 func (s *Server) registerMiddleware(e *echo.Echo) {
-	e.Use(middleware.Recover())
+	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
+		StackSize: 1 << 10, // 1 KB
+	}))
 	e.Use(middleware.RequestID())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"*"},
@@ -36,7 +38,7 @@ func (s *Server) registerMiddleware(e *echo.Echo) {
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig(
 		middleware.RequestLoggerConfig{
 			Skipper: func(c echo.Context) bool {
-				return strings.Contains(c.Request().URL.Path, "/swagger")
+				return strings.Contains(c.Request().URL.Path, "/swagger") || strings.Contains(c.Request().URL.Path, "/health")
 			},
 			LogMethod:        true,
 			LogURI:           true,

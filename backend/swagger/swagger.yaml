@@ -16,8 +16,23 @@ definitions:
     - email
     - otp
     type: object
+  server.DatabaseHealthStatus:
+    properties:
+      acquired_conns:
+        type: integer
+      idle_conns:
+        type: integer
+      max_conns:
+        type: integer
+      status:
+        $ref: '#/definitions/server.Status'
+      total_conns:
+        type: integer
+    type: object
   server.HealthResponse:
     properties:
+      db:
+        $ref: '#/definitions/server.DatabaseHealthStatus'
       status:
         $ref: '#/definitions/server.Status'
     type: object
