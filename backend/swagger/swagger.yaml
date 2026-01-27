@@ -255,11 +255,11 @@ info:
   contact:
     email: subrotokumar@outlook.in
     name: Subroto Kumar
-    url: http://github.com/subrotokumar/glitchr
+    url: http://github.com/subrotokumar/playstack
   description: API Dccumentation for Glitch Backend.
   license:
     name: Apache 2.0
-  title: Glitchr
+  title: Playstack
   version: "1.0"
 paths:
   /auth/confirm-signup:

@@ -75,7 +75,7 @@ helm repo update
 helm install keda kedacore/keda --namespace keda --create-namespace
 
 # Create development Namespace
-kubectl create namespace glitchr
+kubectl create namespace playstack
 
 # Creare App Gateway
 kubectl apply -f ./k8s/gateway.yaml

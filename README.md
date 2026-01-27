@@ -1,15 +1,14 @@
-
-# Glitchr
+# Playstack
 
 #### End-to-End Adaptive Bitrate Video Streaming Platform with Automated Multi-Quality Transcoding
 
-[Documentation](https://subrotokumar.github.io/glitchr/)
+[Documentation](https://subrotokumar.github.io/playstack/)
 
 ![](./docs/assets/architecture.svg)
 
 ## Overview
 
-Glitchr is a backend-heavy video streaming platform that manages the full media lifecycle — secure uploads, automated transcoding into multiple quality variants, and adaptive bitrate delivery.
+Playstack is a backend-heavy video streaming platform that manages the full media lifecycle — secure uploads, automated transcoding into multiple quality variants, and adaptive bitrate delivery.
 
 It is designed with scalability, security, and production-grade infrastructure in mind.
 

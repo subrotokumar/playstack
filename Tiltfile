@@ -1,5 +1,5 @@
 docker_build(
-  'localhost:5001/glitchr/backend',
+  'localhost:5001/playstack/backend',
   context='.',
   dockerfile='docker/backend.dockerfile',
   # dockerfile='docker/backend.local.dockerfile',
@@ -11,8 +11,8 @@ docker_build(
 k8s_yaml(
   helm(
     'k8s/helm',
-    name='glitchr',
-    namespace='glitchr',
+    name='playstack',
+    namespace='playstack',
     values=['k8s/helm/values.yaml', 'k8s/helm/values.secret.yaml'],
   )
 )

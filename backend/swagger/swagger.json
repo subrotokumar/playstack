@@ -2,10 +2,10 @@
     "swagger": "2.0",
     "info": {
         "description": "API Dccumentation for Glitch Backend.",
-        "title": "Glitchr",
+        "title": "Playstack",
         "contact": {
             "name": "Subroto Kumar",
-            "url": "http://github.com/subrotokumar/glitchr",
+            "url": "http://github.com/subrotokumar/playstack",
             "email": "subrotokumar@outlook.in"
         },
         "license": {

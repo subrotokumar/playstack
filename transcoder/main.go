@@ -3,7 +3,8 @@ package main
 import (
 	"context"
 
-	"gitlab.com/subrotokumar/glitchr/transcoder/service"
+	_ "github.com/joho/godotenv/autoload"
+	"gitlab.com/subrotokumar/playstack/transcoder/service"
 )
 
 func main() {

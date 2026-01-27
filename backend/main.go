@@ -3,15 +3,15 @@ package main
 import (
 	"log/slog"
 
-	"gitlab.com/subrotokumar/glitchr/backend/server"
+	"gitlab.com/subrotokumar/playstack/backend/server"
 )
 
-//	@title			Glitchr
+//	@title			Playstack
 //	@version		1.0
 //	@description	API Dccumentation for Glitch Backend.
 
 //	@contact.name	Subroto Kumar
-//	@contact.url	http://github.com/subrotokumar/glitchr
+//	@contact.url	http://github.com/subrotokumar/playstack
 //	@contact.email	subrotokumar@outlook.in
 
 //	@license.name	Apache 2.0

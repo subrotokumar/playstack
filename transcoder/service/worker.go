@@ -11,10 +11,10 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"gitlab.com/subrotokumar/glitchr/libs/core"
-	"gitlab.com/subrotokumar/glitchr/libs/storage"
-	"gitlab.com/subrotokumar/glitchr/transcoder/config"
-	"gitlab.com/subrotokumar/glitchr/transcoder/ffmpeg"
+	"gitlab.com/subrotokumar/playstack/libs/core"
+	"gitlab.com/subrotokumar/playstack/libs/storage"
+	"gitlab.com/subrotokumar/playstack/transcoder/config"
+	"gitlab.com/subrotokumar/playstack/transcoder/ffmpeg"
 )
 
 type Service struct {
@@ -31,6 +31,11 @@ func New() *Service {
 		panic(err)
 	}
 	log := core.NewLogger(cfg.App.Env, cfg.App.Name, cfg.Log.Level)
+	s3Event, err := cfg.ParseS3Event()
+	if err != nil {
+		log.Fatal("failed to unmarshell SQS_MESSAGE")
+	}
+	cfg.S3Event = s3Event
 	storage := storage.NewStorageProvider(cfg.Aws.Region)
 	return &Service{
 		cfg:     cfg,
@@ -89,7 +94,10 @@ func (s *Service) Transcode(ctx context.Context, inputPath, outputDir string) er
 
 func (s *Service) Upload(ctx context.Context, sourceDir string) error {
 	s.log.Info("Uploading files from", "dir", sourceDir)
-
+	keys := strings.Split(s.cfg.Key(), "/")
+	userId := keys[0]
+	videoId := keys[1]
+	uploadKey := userId + "/" + videoId + "/" + "output/"
 	err := filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -109,10 +117,10 @@ func (s *Service) Upload(ctx context.Context, sourceDir string) error {
 		}
 		defer file.Close()
 
-		lastIndex := strings.LastIndex(s.cfg.Bucket(), string(os.PathSeparator)) + 1
+		s.log.Info("Uploading", "key", uploadKey+relPath)
 		_, err = s.storage.Client().PutObject(ctx, &s3.PutObjectInput{
 			Bucket: aws.String(s.cfg.Bucket()),
-			Key:    aws.String(s.cfg.Key()[:lastIndex] + relPath),
+			Key:    aws.String(uploadKey + relPath),
 			Body:   file,
 		})
 		if err != nil {
@@ -146,9 +154,9 @@ func (s *Service) Process(ctx context.Context) error {
 	}
 
 	defer func() {
-		if _, err := os.Stat(inputPath); err == nil {
-			os.Remove(inputPath)
-		}
+		// if _, err := os.Stat(inputPath); err == nil {
+		// 	os.Remove(inputPath)
+		// }
 		if _, err := os.Stat(outputPath); err == nil {
 			os.RemoveAll(outputPath)
 		}

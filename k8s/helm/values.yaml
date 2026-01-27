@@ -1,11 +1,11 @@
 replicaCount: 1
-namespace: glitchr
+namespace: playstack
 repository: localhost:5001
 environment: dev
 
 backend:
   name: backend
-  image: glitchr/backend
+  image: playstack/backend
   imagePullPolicy: always
   configMapRef: 
     - backend

@@ -25,7 +25,7 @@ variables:
   ARGOCD_VERSION: "2.9.3"
   
   # GitOps repository
-  GITOPS_REPO: "git@gitlab.com:subrotokumar/glitchr.git"
+  GITOPS_REPO: "git@gitlab.com:subrotokumar/playstack.git"
   GITOPS_BRANCH: "main"
 
 stages:

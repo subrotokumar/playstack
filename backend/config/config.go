@@ -3,12 +3,12 @@ package config
 import (
 	"fmt"
 
-	"gitlab.com/subrotokumar/glitchr/libs/core"
+	"gitlab.com/subrotokumar/playstack/libs/core"
 )
 
 type Config struct {
 	App struct {
-		Name string   `yaml:"name" envconfig:"SERVICE_NAME" default:"glitchr-backend"`
+		Name string   `yaml:"name" envconfig:"SERVICE_NAME" default:"playstack-backend"`
 		Port string   `yaml:"port" envconfig:"SERVICE_PORT" default:"8080"`
 		Host string   `yaml:"host" envconfig:"SERVICE_HOST" default:"0.0.0.0"`
 		Env  core.Env `yaml:"env" envconfig:"SERVICE_ENV" default:"dev"`

@@ -1,12 +1,12 @@
 [project]
-site_name = "Glitchr"
+site_name = "Playstack"
 site_description = "A new project generated from the default template project."
 site_author = "Subroto Kumar"
 copyright = """
 Copyright &copy; 2025 Subroto Kumar
 """
-repo_url = "https://github.com/subrotokumar/glitchr"
-repo_name = "subrotokumar/glitchr"
+repo_url = "https://github.com/subrotokumar/playstack"
+repo_name = "subrotokumar/playstack"
 
 nav = [
     { "Overview" = "index.md" },

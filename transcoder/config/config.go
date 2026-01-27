@@ -1,13 +1,15 @@
 package config
 
 import (
-	"gitlab.com/subrotokumar/glitchr/libs/core"
-	"gitlab.com/subrotokumar/glitchr/libs/storage"
+	"encoding/json"
+
+	"gitlab.com/subrotokumar/playstack/libs/core"
+	"gitlab.com/subrotokumar/playstack/libs/storage"
 )
 
 type Config struct {
 	App struct {
-		Name string   `yaml:"name" envconfig:"SERVICE_NAME" default:"glitchr"`
+		Name string   `yaml:"name" envconfig:"SERVICE_NAME" default:"playstack"`
 		Env  core.Env `yaml:"env" envconfig:"SERVICE_ENV" default:"dev"`
 	} `yaml:"app"`
 	Log struct {
@@ -17,19 +19,25 @@ type Config struct {
 		Region          string `yaml:"region" envconfig:"AWS_REGION" default:"ap-south-1"`
 		AccessKeyID     string `yaml:"secret_id" envconfig:"AWS_ACCESS_KEY_ID"`
 		SecretAccessKey string `yaml:"secret_key" envconfig:"AWS_SECRET_ACCESS_KEY"`
-		ProcessedBucket string `yaml:"processed_bucket" envconfig:"PROCESSED_BUCKET" required:"true"`
+		MediaBucket     string `yaml:"media_bucket" envconfig:"MEDIA_BUCKET" required:"true"`
 	} `yaml:"aws"`
-	Events storage.S3Event `yaml:"events" envconfig:"SQS_MESSAGE" required:"true"`
+	Event   string `yaml:"events" envconfig:"SQS_MESSAGE" required:"true"`
+	S3Event storage.S3Event
+}
+
+func (cfg *Config) ParseS3Event() (event storage.S3Event, err error) {
+	err = json.Unmarshal([]byte(cfg.Event), &event)
+	return event, err
 }
 
 func (cfg *Config) Bucket() string {
-	return cfg.Events.Records[0].S3.Bucket.Name
+	return cfg.S3Event.Records[0].S3.Bucket.Name
 }
 
 func (cfg *Config) Key() string {
-	return cfg.Events.Records[0].S3.Object.Key
+	return cfg.S3Event.Records[0].S3.Object.Key
 }
 
 func (cfg *Config) ObjectSize() int64 {
-	return cfg.Events.Records[0].S3.Object.Size
+	return cfg.S3Event.Records[0].S3.Object.Size
 }

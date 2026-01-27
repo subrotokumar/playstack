@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
-	"gitlab.com/subrotokumar/glitchr/libs/core"
+	"gitlab.com/subrotokumar/playstack/libs/core"
 )
 
 type Queue struct {

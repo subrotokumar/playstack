@@ -7,11 +7,11 @@ import (
 
 	validation "github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/subrotokumar/glitchr/backend/config"
-	"gitlab.com/subrotokumar/glitchr/libs/core"
-	"gitlab.com/subrotokumar/glitchr/libs/db"
-	idp "gitlab.com/subrotokumar/glitchr/libs/idp"
-	"gitlab.com/subrotokumar/glitchr/libs/storage"
+	"gitlab.com/subrotokumar/playstack/backend/config"
+	"gitlab.com/subrotokumar/playstack/libs/core"
+	"gitlab.com/subrotokumar/playstack/libs/db"
+	idp "gitlab.com/subrotokumar/playstack/libs/idp"
+	"gitlab.com/subrotokumar/playstack/libs/storage"
 )
 
 const (

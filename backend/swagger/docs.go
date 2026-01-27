@@ -11,7 +11,7 @@ const docTemplate = `{
         "title": "{{.Title}}",
         "contact": {
             "name": "Subroto Kumar",
-            "url": "http://github.com/subrotokumar/glitchr",
+            "url": "http://github.com/subrotokumar/playstack",
             "email": "subrotokumar@outlook.in"
         },
         "license": {
@@ -865,7 +865,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "Glitchr",
+	Title:            "Playstack",
 	Description:      "API Dccumentation for Glitch Backend.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

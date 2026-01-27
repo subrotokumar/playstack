@@ -11,7 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/subrotokumar/glitchr/libs/core"
+	"gitlab.com/subrotokumar/playstack/libs/core"
 )
 
 type AuthMiddleware struct {

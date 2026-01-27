@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/subrotokumar/glitchr/libs/db"
+	"gitlab.com/subrotokumar/playstack/libs/db"
 )
 
 const (
@@ -105,7 +105,8 @@ func (s *Server) VideoAssetsHandler(c echo.Context) error {
 
 	videoId := uuid.Must(uuid.NewV7())
 	userId := c.Get("sub").(uuid.UUID)
-	key := fmt.Sprintf("/%s/%s/%s", userId.String(), videoId.String(), body.Name)
+	//TODO: improve
+	key := fmt.Sprintf("videos/%s/%s/%s", userId.String(), videoId.String(), "video.mp4")
 	_, err := s.store.CreateVideo(c.Request().Context(), db.CreateVideoParams{
 		ID:          videoId,
 		UserID:      userId,
