@@ -105,7 +105,6 @@ func (s *Server) VideoAssetsHandler(c echo.Context) error {
 
 	videoId := uuid.Must(uuid.NewV7())
 	userId := c.Get("sub").(uuid.UUID)
-	//TODO: improve
 	key := fmt.Sprintf("videos/%s/%s/%s", userId.String(), videoId.String(), "video.mp4")
 	_, err := s.store.CreateVideo(c.Request().Context(), db.CreateVideoParams{
 		ID:          videoId,

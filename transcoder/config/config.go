@@ -9,7 +9,7 @@ import (
 
 type Config struct {
 	App struct {
-		Name string   `yaml:"name" envconfig:"SERVICE_NAME" default:"playstack"`
+		Name string   `yaml:"name" envconfig:"SERVICE_NAME" default:"playstack-transcoder"`
 		Env  core.Env `yaml:"env" envconfig:"SERVICE_ENV" default:"dev"`
 	} `yaml:"app"`
 	Log struct {

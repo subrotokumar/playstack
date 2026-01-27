@@ -1,0 +1,46 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: "{{ .Chart.Name }}-{{ .Values.transcoder.name }}"
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    env: {{ .Values.environment }}
+spec:
+  maxReplicaCount: {{ .Values.transcoder.maxReplicaCount }}
+  pollingInterval: {{ .Values.transcoder.pollingInterval }}
+  successfulJobsHistoryLimit: {{ .Values.transcoder.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.transcoder.failedJobsHistoryLimit }}
+
+  jobTargetRef:
+    template:
+      spec:
+        restartPolicy: Never
+        containers:
+          - name: {{ .Chart.Name }}-{{ .Values.transcoder.name }}
+            image: {{ .Chart.Name }}/{{ .Values.transcoder.name }}
+            envFrom:
+            {{- range .Values.transcoder.secretRef }}
+            - secretRef:
+                name: {{ $.Chart.Name }}-{{ . }}-sk
+            {{- end }}
+            resources:
+              requests:
+                cpu: {{ .Values.transcoder.requests.cpu }}
+                memory: {{ .Values.transcoder.requests.memory }}
+              limits:
+                cpu:  {{ .Values.transcoder.limits.cpu }}
+                memory: {{ .Values.transcoder.limits.memory }}
+        volumes:
+          - name: workdir
+            emptyDir:
+              sizeLimit: 20Gi
+
+  triggers:
+    - type: {{ .Values.transcoder.trigger.type }}
+      authenticationRef:
+        name: {{ .Chart.Name }}-{{ .Values.transcoder.triggerAuthorization.name }}-ta
+      metadata:
+        queueURL: {{ .Values.transcoder.trigger.queueURL }}
+        queueLength: {{ .Values.transcoder.trigger.queueLength }}
+        awsRegion: {{ .Values.transcoder.trigger.awsRegion }}

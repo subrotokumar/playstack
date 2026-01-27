@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    env: {{ .Values.environment }}
 spec:
   type: {{ .Values.service.type }}
   ports:
