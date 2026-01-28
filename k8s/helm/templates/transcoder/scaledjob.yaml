@@ -1,3 +1,4 @@
+{{ if .Values.transcoder.enabled }}
 apiVersion: keda.sh/v1alpha1
 kind: ScaledJob
 metadata:
@@ -44,3 +45,4 @@ spec:
         queueURL: {{ .Values.transcoder.trigger.queueURL }}
         queueLength: {{ .Values.transcoder.trigger.queueLength }}
         awsRegion: {{ .Values.transcoder.trigger.awsRegion }}
+{{ end }}

@@ -4,6 +4,7 @@ repository: localhost:5001
 environment: dev
 
 backend:
+  enabled: true
   name: backend
   image: playstack/backend
   imagePullPolicy: Always
@@ -22,6 +23,7 @@ service:
   externalPort: 8080
 
 transcoder:
+  enabled: true
   name: transcoder
   image: playstack/transocder
   imagePullPolicy: Always
@@ -71,33 +73,24 @@ securityContext:
   runAsUser: 1000
 
 httpRoute:
-  enabled: false
+  enabled: true
   annotations: {}
   parentRefs:
-  - name: gateway
-    sectionName: http
+  - name: app-gateway
+    # sectionName: http
   hostnames:
-  - chart-example.local
+  - api.playstack.subrotokumar.com
   rules:
   - matches:
     - path:
         type: PathPrefix
-        value: /headers
-  #   filters:
-  #   - type: RequestHeaderModifier
-  #     requestHeaderModifier:
-  #       set:
-  #       - name: My-Overwrite-Header
-  #         value: this-is-the-only-value
-  #       remove:
-  #       - User-Agent
-  # - matches:
-  #   - path:
-  #       type: PathPrefix
-  #       value: /echo
-  #     headers:
-  #     - name: version
-  #       value: v2
+        value: /auth
+    - path:
+        type: PathPrefix
+        value: /media
+    backendRefs:
+    - name: backend
+      port: 8080
 
 resources:
   requests:

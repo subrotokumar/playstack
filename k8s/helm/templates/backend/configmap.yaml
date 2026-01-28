@@ -7,4 +7,4 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
     env: {{ .Values.environment }}
 data:
-  SERVICE_ENV: {{ .Values.environment }} 
+  SERVICE_ENV: {{ .Values.environment }}

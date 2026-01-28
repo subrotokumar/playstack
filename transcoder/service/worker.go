@@ -11,38 +11,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"gitlab.com/subrotokumar/playstack/libs/core"
-	"gitlab.com/subrotokumar/playstack/libs/storage"
-	"gitlab.com/subrotokumar/playstack/transcoder/config"
 	"gitlab.com/subrotokumar/playstack/transcoder/ffmpeg"
 )
-
-type Service struct {
-	cfg     config.Config
-	log     *core.Logger
-	storage *storage.Storage
-	bucket  string
-	path    string
-}
-
-func New() *Service {
-	cfg := config.Config{}
-	if err := core.ConfigFromEnv(&cfg); err != nil {
-		panic(err)
-	}
-	log := core.NewLogger(cfg.App.Env, cfg.App.Name, cfg.Log.Level)
-	s3Event, err := cfg.ParseS3Event()
-	if err != nil {
-		log.Fatal("failed to unmarshell SQS_MESSAGE")
-	}
-	cfg.S3Event = s3Event
-	storage := storage.NewStorageProvider(cfg.Aws.Region)
-	return &Service{
-		cfg:     cfg,
-		log:     log,
-		storage: storage,
-	}
-}
 
 func (s *Service) Download(ctx context.Context, destPath string) error {
 	s.log.Info("Downloading file", "path", destPath)
@@ -136,11 +106,6 @@ func (s *Service) Upload(ctx context.Context, sourceDir string) error {
 	return nil
 }
 
-func (s *Service) UpdateMetadata(ctx context.Context) error {
-	s.log.Info("Updating video metadata in database")
-	return nil
-}
-
 func (s *Service) Process(ctx context.Context) error {
 	workDir := "./tmp/workspace"
 	if err := os.MkdirAll(workDir, 0o755); err != nil {
@@ -154,9 +119,9 @@ func (s *Service) Process(ctx context.Context) error {
 	}
 
 	defer func() {
-		// if _, err := os.Stat(inputPath); err == nil {
-		// 	os.Remove(inputPath)
-		// }
+		if _, err := os.Stat(inputPath); err == nil {
+			os.Remove(inputPath)
+		}
 		if _, err := os.Stat(outputPath); err == nil {
 			os.RemoveAll(outputPath)
 		}
