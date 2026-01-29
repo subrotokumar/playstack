@@ -3,7 +3,7 @@ package idp
 import (
 	"context"
 	"errors"
-	"log"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
@@ -28,10 +28,11 @@ func (idp *IdentityProvider) SignUp(
 	})
 	if err != nil {
 		var invalidPassword *types.InvalidPasswordException
+		var userExists *types.UsernameExistsException
 		if errors.As(err, &invalidPassword) {
-			log.Println(*invalidPassword.Message)
-		} else {
-			log.Printf("Couldn't sign up user %v. Here's why: %v\n", email, err)
+			return false, "", fmt.Errorf("invalid password")
+		} else if errors.As(err, &userExists) {
+			return false, "", fmt.Errorf("user already exists")
 		}
 	}
 

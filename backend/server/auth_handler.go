@@ -71,22 +71,24 @@ func (s *Server) SignupHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, AuthResponse{Error: err.Error()})
 	}
 
-	confirmed, userSub, err := s.idp.SignUp(
+	_, userSub, err := s.idp.SignUp(
 		c.Request().Context(),
 		body.Name,
 		body.Email,
 		body.Password,
 	)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, AuthResponse{Error: err.Error()})
-	}
-
-	if confirmed {
-		s.store.CreateUser(c.Request().Context(), db.CreateUserParams{
-			ID:    uuid.MustParse(userSub),
-			Email: body.Email,
+		return c.JSON(http.StatusInternalServerError, AuthResponse{
+			Message: "failed to signup",
+			Error:   err.Error(),
 		})
 	}
+
+	s.store.CreateUser(c.Request().Context(), db.CreateUserParams{
+		ID:    uuid.MustParse(userSub),
+		Email: body.Email,
+	})
+
 	return c.JSON(http.StatusOK, AuthResponse{
 		Message: "User signed up successfully. Please confirm your email.",
 	})

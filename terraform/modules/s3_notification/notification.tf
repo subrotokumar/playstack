@@ -5,6 +5,7 @@ resource "aws_s3_bucket_notification" "s3_notification" {
     queue_arn = var.queue_arn
     events    = ["s3:ObjectCreated:*"]
     filter_prefix = "videos/"
+    filter_suffix = ".mp4"
   }
 }
 

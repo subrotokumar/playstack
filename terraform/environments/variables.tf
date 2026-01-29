@@ -68,13 +68,13 @@ variable "raw_media_bucket" {
   }
 }
 
-variable "processed_media_bucket" {
+variable "main_media_bucket" {
   description = "S3 bucket name for storing processed/transcoded media files."
   type        = string
 
   validation {
-    condition     = length(var.processed_media_bucket) > 0
-    error_message = "processed_media_bucket must not be empty."
+    condition     = length(var.main_media_bucket) > 0
+    error_message = "main_media_bucket must not be empty."
   }
 }
 

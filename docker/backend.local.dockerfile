@@ -1,5 +1,5 @@
 FROM golang:1.25.6-alpine
-
+EXPOSE 8080
 WORKDIR /app
 
 RUN apk add --no-cache git && \

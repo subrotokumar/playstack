@@ -13,7 +13,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -o transcoder ./transcoder/main.go
 
 FROM jrottenberg/ffmpeg:8-alpine
-
+EXPOSE 8080
 WORKDIR /app
 COPY --from=builder /app/transcoder /app/transcoder
 RUN mkdir download output

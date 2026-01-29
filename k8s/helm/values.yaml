@@ -35,7 +35,7 @@ transcoder:
 
   trigger: 
     type: aws-sqs-queue
-    queueURL: https://sqs.ap-south-1.amazonaws.com/123/transcode
+    queueURL: https://sqs.ap-south-1.amazonaws.com/298228976419/playstack-bucket-trigger-queue
     queueLength: 1
     awsRegion: ap-south-1
   secretRef:

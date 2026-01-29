@@ -17,7 +17,7 @@ RUN go mod tidy && \
 
 # ---------- Runtime ----------
 FROM gcr.io/distroless/static-debian12:nonroot
-
+EXPOSE 8080
 WORKDIR /app
 COPY --from=builder /app/tmp/backend /app/backend
 

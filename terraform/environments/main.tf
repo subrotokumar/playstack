@@ -5,11 +5,11 @@ module "cognito" {
   client_name = var.user_pool_client
 }
 
-# module "processed_media_bucket" {
-#   source = "../modules/s3"
+module "main_media_bucket" {
+  source = "../modules/s3"
 
-#   bucket = var.processed_media_bucket
-# }
+  bucket = var.main_media_bucket
+}
 
 
 module "raw_media_bucket" {

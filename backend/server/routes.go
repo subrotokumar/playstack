@@ -148,11 +148,11 @@ func (s *Server) registerRoutes(e *echo.Echo) {
 
 	// Auth routes
 	authRoutes := e.Group("/auth")
-	authRoutes.POST("/auth/signup", s.SignupHandler)
-	authRoutes.POST("/auth/login", s.LoginHandler)
-	authRoutes.POST("/auth/refresh", s.RefreshTokenHandler)
-	authRoutes.POST("/auth/confirm-signup", s.ConfirmSignupHandler)
-	authRoutes.POST("/auth/profile", s.ProfileHandler)
+	authRoutes.POST("/signup", s.SignupHandler)
+	authRoutes.POST("/login", s.LoginHandler)
+	authRoutes.POST("/refresh", s.RefreshTokenHandler)
+	authRoutes.POST("/confirm-signup", s.ConfirmSignupHandler)
+	authRoutes.POST("/profile", s.ProfileHandler)
 
 	// Media routes
 	mediaRoutes := e.Group("/media", externalAuthMiddleware)

@@ -22,9 +22,13 @@ output "raw_media_bucket_arn" {
 }
 
 
-# output "processed_media_bucket_arn" {
-#   value = module.processed_media_bucket.bucket_arn
-# }
+output "main_media_bucket" {
+  value = module.main_media_bucket.bucket
+}
+
+output "main_media_bucket_arn" {
+  value = module.main_media_bucket.bucket_arn
+}
 
 
 output "bucket_trigger_queue" {
