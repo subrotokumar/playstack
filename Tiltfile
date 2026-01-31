@@ -10,9 +10,9 @@ docker_build(
 
 k8s_yaml(
   helm(
-    'k8s/helm',
+    "../playstack-ops/helm",
     name='playstack',
     namespace='playstack',
-    values=['k8s/helm/values.yaml', 'k8s/helm/values.secret.yaml'],
+    values=['../playstack-ops/helm/values.yaml', '../playstack-ops/helm/values.secret.yaml'],
   )
 )

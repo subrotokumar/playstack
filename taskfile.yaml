@@ -77,8 +77,6 @@ tasks:
     desc: "Encrypt .env and terraform.tfvars files"
     cmds:
       - sops -e -i .env
-      - sops -e -i terraform/environments/terraform.tfvars
-      - sops -e -i k8s/helm/values.secret.yaml
       - sops -e -i example.env
 
   decrypt:
@@ -86,8 +84,6 @@ tasks:
     desc: "Decrypt .env and terraform.tfvars files"
     cmds:
       - sops -d -i .env
-      - sops -d -i terraform/environments/terraform.tfvars
-      - sops -d -i k8s/helm/values.secret.yaml
       - sops -d -i example.env
 
   tf:plan:
