@@ -26,7 +26,7 @@ const docTemplate = `{
             "post": {
                 "description": "Confirm a user's signup using OTP",
                 "consumes": [
-                    "application/json"
+                    "application/x-www-form-urlencoded"
                 ],
                 "produces": [
                     "application/json"
@@ -37,13 +37,18 @@ const docTemplate = `{
                 "summary": "Confirm signup",
                 "parameters": [
                     {
-                        "description": "Confirm signup payload",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/server.ConfirmSignupRequest"
-                        }
+                        "type": "string",
+                        "description": "User email",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "OTP code",
+                        "name": "otp",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -72,7 +77,7 @@ const docTemplate = `{
             "post": {
                 "description": "Authenticate a user and set access/refresh cookies",
                 "consumes": [
-                    "application/json"
+                    "application/x-www-form-urlencoded"
                 ],
                 "produces": [
                     "application/json"
@@ -83,13 +88,18 @@ const docTemplate = `{
                 "summary": "Login user",
                 "parameters": [
                     {
-                        "description": "Login payload",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/server.LoginRequest"
-                        }
+                        "type": "string",
+                        "description": "User email",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -131,19 +141,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/server.ProfileResponse"
+                            "$ref": "#/definitions/server.AuthResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.ProfileResponse"
+                            "$ref": "#/definitions/server.AuthResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.ProfileResponse"
+                            "$ref": "#/definitions/server.AuthResponse"
                         }
                     }
                 }
@@ -184,11 +194,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/resend-otp": {
+            "post": {
+                "description": "Resend confirmation code (OTP) to user's email",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Resend OTP",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User email",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.AuthResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.AuthResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/signup": {
             "post": {
                 "description": "Create a new user account",
                 "consumes": [
-                    "application/json"
+                    "application/x-www-form-urlencoded"
                 ],
                 "produces": [
                     "application/json"
@@ -199,13 +253,25 @@ const docTemplate = `{
                 "summary": "Sign up a new user",
                 "parameters": [
                     {
-                        "description": "Sign up payload",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/server.SignUpRequest"
-                        }
+                        "type": "string",
+                        "description": "User name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User email",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -637,23 +703,11 @@ const docTemplate = `{
         "server.AuthResponse": {
             "type": "object",
             "properties": {
+                "data": {
+                    "$ref": "#/definitions/server.Profile"
+                },
                 "error": {},
                 "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.ConfirmSignupRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "otp"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "otp": {
                     "type": "string"
                 }
             }
@@ -704,21 +758,6 @@ const docTemplate = `{
                 }
             }
         },
-        "server.LoginRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
         "server.Profile": {
             "type": "object",
             "properties": {
@@ -729,37 +768,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sub": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.ProfileResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/server.Profile"
-                },
-                "error": {},
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.SignUpRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "name",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "password": {
                     "type": "string"
                 }
             }

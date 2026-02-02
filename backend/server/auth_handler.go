@@ -14,39 +14,13 @@ const (
 )
 
 type (
-	SignUpRequest struct {
-		Name     string `json:"name" validate:"required"`
-		Email    string `json:"email" validate:"required,email"`
-		Password string `json:"password" validate:"required"`
-	}
-
-	LoginRequest struct {
-		Email    string `json:"email" validate:"email,required"`
-		Password string `json:"password" validate:"required"`
-	}
-
-	ConfirmSignupRequest struct {
-		Email string `json:"email" validate:"email,required"`
-		Otp   string `json:"otp" validate:"required"`
-	}
-
-	RefreshTokenRequest struct {
-		Email        string `json:"email" validate:"email,required"`
-		RefreshToken string `json:"refresh_token"`
-	}
-
-	AuthResponse struct {
-		Message string `json:"message,omitempty"`
-		Error   any    `json:"error,omitempty"`
-	}
-
 	Profile struct {
 		Name  string `json:"name"`
 		Email string `json:"email"`
 		Sub   string `json:"sub"`
 	}
 
-	ProfileResponse struct {
+	AuthResponse struct {
 		Data    *Profile `json:"data,omitempty"`
 		Message string   `json:"message,omitempty"`
 		Error   any      `json:"error,omitempty"`
@@ -58,24 +32,44 @@ type (
 //	@Summary		Sign up a new user
 //	@Description	Create a new user account
 //	@Tags			auth
-//	@Accept			json
+//	@Accept			x-www-form-urlencoded
 //	@Produce		json
-//	@Param			body	body		SignUpRequest	true	"Sign up payload"
+//	@Param			name		formData	string	true	"User name"
+//	@Param			email		formData	string	true	"User email"
+//	@Param			password	formData	string	true	"User password"
 //	@Success		200		{object}	AuthResponse
 //	@Failure		400		{object} 	AuthResponse
 //	@Failure		500		{object}	AuthResponse
 //	@Router			/auth/signup [post]
 func (s *Server) SignupHandler(c echo.Context) error {
-	var body SignUpRequest
-	if err := RequestBody(c, &body); err != nil {
+	name := c.FormValue("name")
+	email := c.FormValue("email")
+	password := c.FormValue("password")
+
+	if err := validator.Var(name, "required"); err != nil {
 		return c.JSON(http.StatusBadRequest, AuthResponse{Error: err.Error()})
+	}
+	if err := validator.Var(email, "required,email"); err != nil {
+		return c.JSON(http.StatusBadRequest, AuthResponse{Error: err.Error()})
+	}
+	if err := validator.Var(password, "required,min=8"); err != nil {
+		return c.JSON(http.StatusBadRequest, AuthResponse{Error: "password must be at least 8 characters"})
+	}
+	if err := validator.Var(password, "containsany=ABCDEFGHIJKLMNOPQRSTUVWXYZ"); err != nil {
+		return c.JSON(http.StatusBadRequest, AuthResponse{Error: "password must contain at least 1 uppercase letter"})
+	}
+	if err := validator.Var(password, "containsany=abcdefghijklmnopqrstuvwxyz"); err != nil {
+		return c.JSON(http.StatusBadRequest, AuthResponse{Error: "password must contain at least 1 lowercase letter"})
+	}
+	if err := validator.Var(password, "containsany=0123456789"); err != nil {
+		return c.JSON(http.StatusBadRequest, AuthResponse{Error: "password must contain at least 1 number"})
 	}
 
 	_, userSub, err := s.idp.SignUp(
 		c.Request().Context(),
-		body.Name,
-		body.Email,
-		body.Password,
+		name,
+		email,
+		password,
 	)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, AuthResponse{
@@ -86,7 +80,7 @@ func (s *Server) SignupHandler(c echo.Context) error {
 
 	s.store.CreateUser(c.Request().Context(), db.CreateUserParams{
 		ID:    uuid.MustParse(userSub),
-		Email: body.Email,
+		Email: email,
 	})
 
 	return c.JSON(http.StatusOK, AuthResponse{
@@ -99,20 +93,26 @@ func (s *Server) SignupHandler(c echo.Context) error {
 //	@Summary		Login user
 //	@Description	Authenticate a user and set access/refresh cookies
 //	@Tags			auth
-//	@Accept			json
+//	@Accept			x-www-form-urlencoded
 //	@Produce		json
-//	@Param			body	body		LoginRequest	true	"Login payload"
+//	@Param			email		formData	string	true	"User email"
+//	@Param			password	formData	string	true	"User password"
 //	@Success		200		{object}	AuthResponse
 //	@Failure		400		{object}	AuthResponse
 //	@Failure		401		{object}	AuthResponse
 //	@Router			/auth/login [post]
 func (s *Server) LoginHandler(c echo.Context) error {
-	var body LoginRequest
-	if err := RequestBody(c, &body); err != nil {
+	email := c.FormValue("email")
+	password := c.FormValue("password")
+
+	if err := validator.Var(email, "required,email"); err != nil {
+		return c.JSON(http.StatusBadRequest, AuthResponse{Error: err.Error()})
+	}
+	if err := validator.Var(password, "required"); err != nil {
 		return c.JSON(http.StatusBadRequest, AuthResponse{Error: err.Error()})
 	}
 
-	tokens, err := s.idp.Login(c.Request().Context(), body.Email, body.Password)
+	tokens, err := s.idp.Login(c.Request().Context(), email, password)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, AuthResponse{Error: err.Error()})
 	}
@@ -125,25 +125,57 @@ func (s *Server) LoginHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, AuthResponse{Message: "User logged in successfully"})
 }
 
+// ResentOTP godoc
+//
+//	@Summary		Resend OTP
+//	@Description	Resend confirmation code (OTP) to user's email
+//	@Tags			auth
+//	@Accept			x-www-form-urlencoded
+//	@Produce		json
+//	@Param			email	formData	string	true	"User email"
+//	@Success		200		{object}	AuthResponse
+//	@Failure		400		{object}	AuthResponse
+//	@Failure		500		{object}	AuthResponse
+//	@Router			/auth/resend-otp [post]
+func (s *Server) ResentOTP(c echo.Context) error {
+	email := c.FormValue("email")
+	err := validator.Var(email, "required,email")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, AuthResponse{Error: err.Error()})
+	}
+
+	if err := s.idp.ResendOTP(c.Request().Context(), email); err != nil {
+		return c.JSON(http.StatusInternalServerError, AuthResponse{Error: err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, AuthResponse{Message: "OTP send successfully"})
+}
+
 // ConfirmSignupHandler godoc
 //
 //	@Summary		Confirm signup
 //	@Description	Confirm a user's signup using OTP
 //	@Tags			auth
-//	@Accept			json
+//	@Accept			x-www-form-urlencoded
 //	@Produce		json
-//	@Param			body	body		ConfirmSignupRequest	true	"Confirm signup payload"
+//	@Param			email	formData	string	true	"User email"
+//	@Param			otp		formData	string	true	"OTP code"
 //	@Success		200		{object}	AuthResponse
 //	@Failure		400		{object}	AuthResponse
 //	@Failure		500		{object}	AuthResponse
 //	@Router			/auth/confirm-signup [post]
 func (s *Server) ConfirmSignupHandler(c echo.Context) error {
-	var body ConfirmSignupRequest
-	if err := RequestBody(c, &body); err != nil {
+	email := c.FormValue("email")
+	otp := c.FormValue("otp")
+
+	if err := validator.Var(email, "required,email"); err != nil {
+		return c.JSON(http.StatusBadRequest, AuthResponse{Error: err.Error()})
+	}
+	if err := validator.Var(otp, "required"); err != nil {
 		return c.JSON(http.StatusBadRequest, AuthResponse{Error: err.Error()})
 	}
 
-	if err := s.idp.ConfirmSignUp(c.Request().Context(), body.Email, body.Otp); err != nil {
+	if err := s.idp.ConfirmSignUp(c.Request().Context(), email, otp); err != nil {
 		return c.JSON(http.StatusInternalServerError, AuthResponse{Error: err.Error()})
 	}
 
@@ -209,20 +241,20 @@ func (s *Server) RefreshTokenHandler(c echo.Context) error {
 //	@Tags			auth
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	ProfileResponse
-//	@Failure		400	{object}	ProfileResponse
-//	@Failure		500	{object}	ProfileResponse
+//	@Success		200	{object}	AuthResponse
+//	@Failure		400	{object}	AuthResponse
+//	@Failure		500	{object}	AuthResponse
 //	@Router			/auth/profile [post]
 func (s *Server) ProfileHandler(c echo.Context) error {
 	idTokenCookie, err := c.Request().Cookie("id_token")
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, ProfileResponse{Error: err.Error()})
+		return c.JSON(http.StatusBadRequest, AuthResponse{Error: err.Error()})
 	}
 
 	claims := jwt.MapClaims{}
 	_, _, err = new(jwt.Parser).ParseUnverified(idTokenCookie.Value, claims)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, ProfileResponse{Error: ErrInvalidToken})
+		return c.JSON(http.StatusUnauthorized, AuthResponse{Error: ErrInvalidToken})
 	}
 
 	sub, ok := claims["username"].(string)
@@ -232,13 +264,13 @@ func (s *Server) ProfileHandler(c echo.Context) error {
 
 	email, ok := claims["email"].(string)
 	if !ok {
-		return c.JSON(http.StatusUnauthorized, ProfileResponse{Error: ErrInvalidToken})
+		return c.JSON(http.StatusUnauthorized, AuthResponse{Error: ErrInvalidToken})
 	}
 	name, ok := claims["name"].(string)
 	if !ok {
-		return c.JSON(http.StatusUnauthorized, ProfileResponse{Error: ErrInvalidToken})
+		return c.JSON(http.StatusUnauthorized, AuthResponse{Error: ErrInvalidToken})
 	}
-	return c.JSON(http.StatusOK, ProfileResponse{
+	return c.JSON(http.StatusOK, AuthResponse{
 		Data: &Profile{
 			Name:  name,
 			Email: email,

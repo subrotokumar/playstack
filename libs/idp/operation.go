@@ -55,6 +55,19 @@ func (idp *IdentityProvider) ConfirmSignUp(
 	return err
 }
 
+func (idp *IdentityProvider) ResendOTP(
+	ctx context.Context,
+	email string,
+) error {
+	secretHash := GetSecretHash(email, idp.ClientId, idp.ClientSecret)
+	_, err := idp.CognitoClient.ResendConfirmationCode(ctx, &cognitoidentityprovider.ResendConfirmationCodeInput{
+		ClientId:   aws.String(idp.ClientId),
+		Username:   aws.String(email),
+		SecretHash: aws.String(secretHash),
+	})
+	return err
+}
+
 type AuthTokens struct {
 	AccessToken  string
 	RefreshToken string

@@ -148,17 +148,18 @@ func (s *Server) registerRoutes(e *echo.Echo) {
 
 	// Auth routes
 	authRoutes := e.Group("/auth")
-	authRoutes.POST("/signup", s.SignupHandler)
-	authRoutes.POST("/login", s.LoginHandler)
-	authRoutes.POST("/refresh", s.RefreshTokenHandler)
-	authRoutes.POST("/confirm-signup", s.ConfirmSignupHandler)
-	authRoutes.POST("/profile", s.ProfileHandler)
+	authRoutes.GET("/me", s.ProfileHandler)
+	authRoutes.POST("/users", s.SignupHandler)
+	authRoutes.POST("/sessions", s.LoginHandler)
+	authRoutes.POST("/tokens", s.RefreshTokenHandler)
+	authRoutes.POST("/verifications", s.ResentOTP)
+	authRoutes.POST("/verifications/confirm", s.ConfirmSignupHandler)
 
 	// Media routes
 	mediaRoutes := e.Group("/media", externalAuthMiddleware)
 	mediaRoutes.GET("/videos", s.GetVideoHandler)
-	mediaRoutes.POST("/videos/signed-url", s.VideoAssetsHandler)
-	mediaRoutes.PUT("/videos/:videoId/thumbnail/signed-url", s.ThumbnailSignedUrlHandler)
+	mediaRoutes.POST("/videos", s.VideoAssetsHandler)
+	mediaRoutes.PUT("/videos/:videoId/thumbnail", s.ThumbnailSignedUrlHandler)
 
 	internal := e.Group("/internal", internalAuthMiddleware)
 	internal.PATCH("/media/videos/:videoId", s.UpdateMediaInternalHandler)
