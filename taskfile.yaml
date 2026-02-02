@@ -66,7 +66,7 @@ tasks:
   docs:
     silent: true
     desc: "Serve local documentation site"
-    cmds: [uv run zensical serve]
+    cmds: [uv run --with "zensical>=0.0.15" zensical serve]
   
   clean:
     silent: true
