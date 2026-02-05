@@ -1,8 +1,13 @@
 version: "2"
+servers:
+- engine: postgresql
+  uri: ${DATABASE_URI}
 sql:
   - schema: "migration"
     queries: "libs/db/queries"
     engine: "postgresql"
+    database:
+      managed: true
     gen:
       go:
         package: "db"

@@ -4,7 +4,7 @@
 *.dll
 *.so
 *.dylib
-
+.gitlab-ci-local
 # Test binary, built with "go test -c"
 *.test
 
