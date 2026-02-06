@@ -199,3 +199,8 @@ tasks:
     silent: true
     dir: k8s
     cmds: [helm template playstack ./helm] 
+  
+  gcl:
+    silent: true
+    cmds:
+      - gitlab-ci-local --list | fzf | awk '{print $1}' | xargs gitlab-ci-local 
