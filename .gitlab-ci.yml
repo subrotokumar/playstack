@@ -311,7 +311,7 @@ build:transcoder:
 # For free tier, use Trivy
 container_scanning:backend:
   stage: container-scan
-  image: docker:24-stable
+  image: docker:24
   services:
     - docker:24-dind
   variables:
@@ -345,7 +345,7 @@ container_scanning:backend:
 
 container_scanning:transcoder:
   stage: container-scan
-  image: docker:24-stable
+  image: docker:24
   services:
     - docker:24-dind
   variables:

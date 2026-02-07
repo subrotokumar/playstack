@@ -34,13 +34,13 @@ type (
 //	@Tags			auth
 //	@Accept			x-www-form-urlencoded
 //	@Produce		json
-//	@Param			name		formData	string	true	"User name"
-//	@Param			email		formData	string	true	"User email"
-//	@Param			password	formData	string	true	"User password"
+//	@Param			name		formData	string	true	"Name"
+//	@Param			email		formData	string	true	"Email"
+//	@Param			password	formData	string	true	"Password"
 //	@Success		200		{object}	AuthResponse
 //	@Failure		400		{object} 	AuthResponse
 //	@Failure		500		{object}	AuthResponse
-//	@Router			/auth/signup [post]
+//	@Router			/auth/users [post]
 func (s *Server) SignupHandler(c echo.Context) error {
 	name := c.FormValue("name")
 	email := c.FormValue("email")
@@ -81,6 +81,7 @@ func (s *Server) SignupHandler(c echo.Context) error {
 	s.store.CreateUser(c.Request().Context(), db.CreateUserParams{
 		ID:    uuid.MustParse(userSub),
 		Email: email,
+		Name:  name,
 	})
 
 	return c.JSON(http.StatusOK, AuthResponse{
@@ -100,7 +101,7 @@ func (s *Server) SignupHandler(c echo.Context) error {
 //	@Success		200		{object}	AuthResponse
 //	@Failure		400		{object}	AuthResponse
 //	@Failure		401		{object}	AuthResponse
-//	@Router			/auth/login [post]
+//	@Router			/auth/sessions [post]
 func (s *Server) LoginHandler(c echo.Context) error {
 	email := c.FormValue("email")
 	password := c.FormValue("password")
@@ -136,7 +137,7 @@ func (s *Server) LoginHandler(c echo.Context) error {
 //	@Success		200		{object}	AuthResponse
 //	@Failure		400		{object}	AuthResponse
 //	@Failure		500		{object}	AuthResponse
-//	@Router			/auth/resend-otp [post]
+//	@Router			/auth/verifications [post]
 func (s *Server) ResentOTP(c echo.Context) error {
 	email := c.FormValue("email")
 	err := validator.Var(email, "required,email")
@@ -163,7 +164,7 @@ func (s *Server) ResentOTP(c echo.Context) error {
 //	@Success		200		{object}	AuthResponse
 //	@Failure		400		{object}	AuthResponse
 //	@Failure		500		{object}	AuthResponse
-//	@Router			/auth/confirm-signup [post]
+//	@Router			/auth/verifications/confirm [post]
 func (s *Server) ConfirmSignupHandler(c echo.Context) error {
 	email := c.FormValue("email")
 	otp := c.FormValue("otp")
@@ -192,7 +193,7 @@ func (s *Server) ConfirmSignupHandler(c echo.Context) error {
 //	@Success		200	{object}	AuthResponse
 //	@Failure		400	{object}	AuthResponse
 //	@Failure		500	{object}	AuthResponse
-//	@Router			/auth/refresh [post]
+//	@Router			/auth/tokens [post]
 func (s *Server) RefreshTokenHandler(c echo.Context) error {
 	refreshCookie, err := c.Cookie("refresh_token")
 	if err != nil {

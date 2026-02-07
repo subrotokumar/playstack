@@ -6,8 +6,10 @@ CREATE TYPE video_status AS ENUM (
     'PREUPLOAD',
     'UPLOADED',
     'PROCESSING',
+    'FAILED',
     'READY',
-    'FAILED'
+    'PRIVATE',
+    'PUBLIC'
 );
 
 CREATE TABLE IF NOT EXISTS users (

@@ -22,11 +22,11 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/auth/confirm-signup": {
+        "/auth/profile": {
             "post": {
-                "description": "Confirm a user's signup using OTP",
+                "description": "Get Profile Detail",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -34,23 +34,7 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Confirm signup",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User email",
-                        "name": "email",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "OTP code",
-                        "name": "otp",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
+                "summary": "Profile",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -73,7 +57,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/login": {
+        "/auth/sessions": {
             "post": {
                 "description": "Authenticate a user and set access/refresh cookies",
                 "consumes": [
@@ -124,42 +108,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/profile": {
-            "post": {
-                "description": "Get Profile Detail",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Profile",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/server.AuthResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/server.AuthResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/server.AuthResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/refresh": {
+        "/auth/tokens": {
             "post": {
                 "description": "Refresh access token using refresh token cookie",
                 "consumes": [
@@ -194,7 +143,65 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/resend-otp": {
+        "/auth/users": {
+            "post": {
+                "description": "Create a new user account",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Sign up a new user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Email",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.AuthResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.AuthResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/verifications": {
             "post": {
                 "description": "Resend confirmation code (OTP) to user's email",
                 "consumes": [
@@ -238,9 +245,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/signup": {
+        "/auth/verifications/confirm": {
             "post": {
-                "description": "Create a new user account",
+                "description": "Confirm a user's signup using OTP",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -250,15 +257,8 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Sign up a new user",
+                "summary": "Confirm signup",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User name",
-                        "name": "name",
-                        "in": "formData",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "User email",
@@ -268,8 +268,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "User password",
-                        "name": "password",
+                        "description": "OTP code",
+                        "name": "otp",
                         "in": "formData",
                         "required": true
                     }

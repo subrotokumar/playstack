@@ -148,7 +148,7 @@ func (s *Server) registerRoutes(e *echo.Echo) {
 
 	// Auth routes
 	authRoutes := e.Group("/auth")
-	authRoutes.GET("/me", s.ProfileHandler)
+	authRoutes.GET("/profile", s.ProfileHandler)
 	authRoutes.POST("/users", s.SignupHandler)
 	authRoutes.POST("/sessions", s.LoginHandler)
 	authRoutes.POST("/tokens", s.RefreshTokenHandler)
