@@ -223,188 +223,6 @@ info:
   title: Playstack
   version: "1.0"
 paths:
-  /auth/profile:
-    post:
-      consumes:
-      - application/json
-      description: Get Profile Detail
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-      summary: Profile
-      tags:
-      - auth
-  /auth/sessions:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: Authenticate a user and set access/refresh cookies
-      parameters:
-      - description: User email
-        in: formData
-        name: email
-        required: true
-        type: string
-      - description: User password
-        in: formData
-        name: password
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-      summary: Login user
-      tags:
-      - auth
-  /auth/tokens:
-    post:
-      consumes:
-      - application/json
-      description: Refresh access token using refresh token cookie
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-      summary: Refresh access token
-      tags:
-      - auth
-  /auth/users:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: Create a new user account
-      parameters:
-      - description: Name
-        in: formData
-        name: name
-        required: true
-        type: string
-      - description: Email
-        in: formData
-        name: email
-        required: true
-        type: string
-      - description: Password
-        in: formData
-        name: password
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-      summary: Sign up a new user
-      tags:
-      - auth
-  /auth/verifications:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: Resend confirmation code (OTP) to user's email
-      parameters:
-      - description: User email
-        in: formData
-        name: email
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-      summary: Resend OTP
-      tags:
-      - auth
-  /auth/verifications/confirm:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: Confirm a user's signup using OTP
-      parameters:
-      - description: User email
-        in: formData
-        name: email
-        required: true
-        type: string
-      - description: OTP code
-        in: formData
-        name: otp
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/server.AuthResponse'
-      summary: Confirm signup
-      tags:
-      - auth
   /health/liveness:
     get:
       description: Indicates whether the application process is alive
@@ -417,7 +235,7 @@ paths:
             $ref: '#/definitions/server.HealthResponse'
       summary: Liveness probe
       tags:
-      - health
+      - Health
   /health/readiness:
     get:
       description: Indicates whether the application is ready to receive traffic
@@ -430,7 +248,7 @@ paths:
             $ref: '#/definitions/server.HealthResponse'
       summary: Readiness probe
       tags:
-      - health
+      - Health
   /internal/media/videos/{videoId}:
     patch:
       consumes:
@@ -467,7 +285,7 @@ paths:
       - BasicAuth: []
       summary: Update video metadata (internal)
       tags:
-      - media-internal
+      - Internal
   /media/videos:
     get:
       description: Returns videos with READY status
@@ -486,8 +304,40 @@ paths:
       - BearerAuth: []
       summary: List ready videos
       tags:
-      - media
-  /media/videos/{videoId}/thumbnail/signed-url:
+      - Media
+    post:
+      consumes:
+      - application/json
+      description: Creates a video record and returns a presigned POST URL for uploading
+        raw media
+      parameters:
+      - description: Video asset metadata
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/server.AssetsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.AssetsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.AssetsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.AssetsResponse'
+      security:
+      - BearerAuth: []
+      summary: Create presigned URL for video upload
+      tags:
+      - Media
+  /media/videos/{videoId}/thumbnail:
     put:
       consumes:
       - application/json
@@ -527,40 +377,188 @@ paths:
       - BearerAuth: []
       summary: Create presigned URL for thumbnail upload
       tags:
-      - media
-  /media/videos/signed-url:
-    post:
+      - Media
+  /profile:
+    get:
       consumes:
       - application/json
-      description: Creates a video record and returns a presigned POST URL for uploading
-        raw media
-      parameters:
-      - description: Video asset metadata
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/server.AssetsRequest'
+      description: Get Profile Detail
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.AssetsResponse'
+            $ref: '#/definitions/server.AuthResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.AssetsResponse'
+            $ref: '#/definitions/server.AuthResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.AssetsResponse'
-      security:
-      - BearerAuth: []
-      summary: Create presigned URL for video upload
+            $ref: '#/definitions/server.AuthResponse'
+      summary: Profile
       tags:
-      - media
+      - Profile
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new user account
+      parameters:
+      - description: Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.AuthResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.AuthResponse'
+      summary: Sign up a new user
+      tags:
+      - Profile
+  /profile/sessions:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Authenticate a user and set access/refresh cookies
+      parameters:
+      - description: User email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: User password
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/server.AuthResponse'
+      summary: Login user
+      tags:
+      - Profile
+  /profile/tokens:
+    post:
+      consumes:
+      - application/json
+      description: Refresh access token using refresh token cookie
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.AuthResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.AuthResponse'
+      summary: Refresh access token
+      tags:
+      - Profile
+  /profile/verifications:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Resend confirmation code (OTP) to user's email
+      parameters:
+      - description: User email
+        in: formData
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.AuthResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.AuthResponse'
+      summary: Resend OTP
+      tags:
+      - Profile
+  /profile/verifications/confirm:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Confirm a user's signup using OTP
+      parameters:
+      - description: User email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: OTP code
+        in: formData
+        name: otp
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.AuthResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.AuthResponse'
+      summary: Confirm signup
+      tags:
+      - Profile
 securityDefinitions:
   BasicAuth:
     type: basic

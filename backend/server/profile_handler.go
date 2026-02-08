@@ -31,7 +31,7 @@ type (
 //
 //	@Summary		Sign up a new user
 //	@Description	Create a new user account
-//	@Tags			auth
+//	@Tags			Profile
 //	@Accept			x-www-form-urlencoded
 //	@Produce		json
 //	@Param			name		formData	string	true	"Name"
@@ -40,7 +40,7 @@ type (
 //	@Success		200		{object}	AuthResponse
 //	@Failure		400		{object} 	AuthResponse
 //	@Failure		500		{object}	AuthResponse
-//	@Router			/auth/users [post]
+//	@Router			/profile [post]
 func (s *Server) SignupHandler(c echo.Context) error {
 	name := c.FormValue("name")
 	email := c.FormValue("email")
@@ -93,7 +93,7 @@ func (s *Server) SignupHandler(c echo.Context) error {
 //
 //	@Summary		Login user
 //	@Description	Authenticate a user and set access/refresh cookies
-//	@Tags			auth
+//	@Tags			Profile
 //	@Accept			x-www-form-urlencoded
 //	@Produce		json
 //	@Param			email		formData	string	true	"User email"
@@ -101,7 +101,7 @@ func (s *Server) SignupHandler(c echo.Context) error {
 //	@Success		200		{object}	AuthResponse
 //	@Failure		400		{object}	AuthResponse
 //	@Failure		401		{object}	AuthResponse
-//	@Router			/auth/sessions [post]
+//	@Router			/profile/sessions [post]
 func (s *Server) LoginHandler(c echo.Context) error {
 	email := c.FormValue("email")
 	password := c.FormValue("password")
@@ -130,14 +130,14 @@ func (s *Server) LoginHandler(c echo.Context) error {
 //
 //	@Summary		Resend OTP
 //	@Description	Resend confirmation code (OTP) to user's email
-//	@Tags			auth
+//	@Tags			Profile
 //	@Accept			x-www-form-urlencoded
 //	@Produce		json
 //	@Param			email	formData	string	true	"User email"
 //	@Success		200		{object}	AuthResponse
 //	@Failure		400		{object}	AuthResponse
 //	@Failure		500		{object}	AuthResponse
-//	@Router			/auth/verifications [post]
+//	@Router			/profile/verifications [post]
 func (s *Server) ResentOTP(c echo.Context) error {
 	email := c.FormValue("email")
 	err := validator.Var(email, "required,email")
@@ -156,7 +156,7 @@ func (s *Server) ResentOTP(c echo.Context) error {
 //
 //	@Summary		Confirm signup
 //	@Description	Confirm a user's signup using OTP
-//	@Tags			auth
+//	@Tags			Profile
 //	@Accept			x-www-form-urlencoded
 //	@Produce		json
 //	@Param			email	formData	string	true	"User email"
@@ -164,7 +164,7 @@ func (s *Server) ResentOTP(c echo.Context) error {
 //	@Success		200		{object}	AuthResponse
 //	@Failure		400		{object}	AuthResponse
 //	@Failure		500		{object}	AuthResponse
-//	@Router			/auth/verifications/confirm [post]
+//	@Router			/profile/verifications/confirm [post]
 func (s *Server) ConfirmSignupHandler(c echo.Context) error {
 	email := c.FormValue("email")
 	otp := c.FormValue("otp")
@@ -187,13 +187,13 @@ func (s *Server) ConfirmSignupHandler(c echo.Context) error {
 //
 //	@Summary		Refresh access token
 //	@Description	Refresh access token using refresh token cookie
-//	@Tags			auth
+//	@Tags			Profile
 //	@Accept			json
 //	@Produce		json
 //	@Success		200	{object}	AuthResponse
 //	@Failure		400	{object}	AuthResponse
 //	@Failure		500	{object}	AuthResponse
-//	@Router			/auth/tokens [post]
+//	@Router			/profile/tokens [post]
 func (s *Server) RefreshTokenHandler(c echo.Context) error {
 	refreshCookie, err := c.Cookie("refresh_token")
 	if err != nil {
@@ -239,13 +239,13 @@ func (s *Server) RefreshTokenHandler(c echo.Context) error {
 //
 //	@Summary		Profile
 //	@Description	Get Profile Detail
-//	@Tags			auth
+//	@Tags			Profile
 //	@Accept			json
 //	@Produce		json
 //	@Success		200	{object}	AuthResponse
 //	@Failure		400	{object}	AuthResponse
 //	@Failure		500	{object}	AuthResponse
-//	@Router			/auth/profile [post]
+//	@Router			/profile [get]
 func (s *Server) ProfileHandler(c echo.Context) error {
 	idTokenCookie, err := c.Request().Cookie("id_token")
 	if err != nil {

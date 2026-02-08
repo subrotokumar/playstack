@@ -146,10 +146,10 @@ func (s *Server) registerRoutes(e *echo.Echo) {
 	e.GET("/health/liveness", s.LivenessHandler)
 	e.GET("/health/readiness", s.ReadinessHandler)
 
-	// Auth routes
-	authRoutes := e.Group("/auth")
-	authRoutes.GET("/profile", s.ProfileHandler)
-	authRoutes.POST("/users", s.SignupHandler)
+	// Profile routes
+	authRoutes := e.Group("/profile")
+	authRoutes.GET("", s.ProfileHandler)
+	authRoutes.POST("", s.SignupHandler)
 	authRoutes.POST("/sessions", s.LoginHandler)
 	authRoutes.POST("/tokens", s.RefreshTokenHandler)
 	authRoutes.POST("/verifications", s.ResentOTP)

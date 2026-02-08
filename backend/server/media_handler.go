@@ -88,7 +88,7 @@ type (
 //
 // @Summary      Create presigned URL for video upload
 // @Description Creates a video record and returns a presigned POST URL for uploading raw media
-// @Tags         media
+// @Tags         Media
 // @Accept       json
 // @Produce      json
 // @Param        body  body      AssetsRequest  true  "Video asset metadata"
@@ -96,7 +96,7 @@ type (
 // @Failure      400   {object}  AssetsResponse
 // @Failure      500   {object}  AssetsResponse
 // @Security     BearerAuth
-// @Router       /media/videos/signed-url [post]
+// @Router       /media/videos [post]
 func (s *Server) VideoAssetsHandler(c echo.Context) error {
 	body := AssetsRequest{}
 	if err := RequestBody(c, &body); err != nil {
@@ -129,6 +129,7 @@ func (s *Server) VideoAssetsHandler(c echo.Context) error {
 	if err != nil {
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
 	return c.JSON(http.StatusOK, AssetsResponse{
 		Data: &AssetsResponseData{
 			UploadUrl: presignedUrl.URL,
@@ -151,7 +152,7 @@ func (s *Server) VideoAssetsHandler(c echo.Context) error {
 //
 // @Summary      Create presigned URL for thumbnail upload
 // @Description Returns a presigned PUT URL for uploading a video thumbnail
-// @Tags         media
+// @Tags         Media
 // @Accept       json
 // @Produce      json
 // @Param        videoId  path      string                 true  "Video ID"
@@ -161,7 +162,7 @@ func (s *Server) VideoAssetsHandler(c echo.Context) error {
 // @Failure      403      {object}  AssetsResponse
 // @Failure      500      {object}  AssetsResponse
 // @Security     BearerAuth
-// @Router       /media/videos/{videoId}/thumbnail/signed-url [put]
+// @Router       /media/videos/{videoId}/thumbnail [put]
 func (s *Server) ThumbnailSignedUrlHandler(c echo.Context) error {
 	userId := c.Get("sub").(uuid.UUID)
 	videoId, err := uuid.Parse(c.Param("videoId"))
@@ -210,7 +211,7 @@ func (s *Server) ThumbnailSignedUrlHandler(c echo.Context) error {
 //
 // @Summary      Update video metadata (internal)
 // @Description Updates title, status, or duration of a video
-// @Tags         media-internal
+// @Tags         Internal
 // @Accept       json
 // @Produce      json
 // @Param        videoId  path      string                 true  "Video ID"
@@ -265,7 +266,7 @@ func (s *Server) UpdateMediaInternalHandler(c echo.Context) error {
 //
 // @Summary      List ready videos
 // @Description Returns videos with READY status
-// @Tags         media
+// @Tags         Media
 // @Produce      json
 // @Success      200   {object}   GetVideoResponse
 // @Failure      500   {object}  GetVideoResponse
