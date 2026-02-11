@@ -20,15 +20,19 @@ definitions:
     - PREUPLOAD
     - UPLOADED
     - PROCESSING
-    - READY
     - FAILED
+    - READY
+    - PRIVATE
+    - PUBLIC
     type: string
     x-enum-varnames:
     - VideoStatusPREUPLOAD
     - VideoStatusUPLOADED
     - VideoStatusPROCESSING
-    - VideoStatusREADY
     - VideoStatusFAILED
+    - VideoStatusREADY
+    - VideoStatusPRIVATE
+    - VideoStatusPUBLIC
   pgtype.InfinityModifier:
     enum:
     - 1

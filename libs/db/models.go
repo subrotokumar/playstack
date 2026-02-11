@@ -18,8 +18,10 @@ const (
 	VideoStatusPREUPLOAD  VideoStatus = "PREUPLOAD"
 	VideoStatusUPLOADED   VideoStatus = "UPLOADED"
 	VideoStatusPROCESSING VideoStatus = "PROCESSING"
-	VideoStatusREADY      VideoStatus = "READY"
 	VideoStatusFAILED     VideoStatus = "FAILED"
+	VideoStatusREADY      VideoStatus = "READY"
+	VideoStatusPRIVATE    VideoStatus = "PRIVATE"
+	VideoStatusPUBLIC     VideoStatus = "PUBLIC"
 )
 
 func (e *VideoStatus) Scan(src interface{}) error {

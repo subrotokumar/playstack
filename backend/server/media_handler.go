@@ -46,10 +46,10 @@ type (
 		ContentType string `json:"content_type" validate:"required"`
 	}
 	AssetsResponseData struct {
-		UploadUrl string            `json:"upload_url"`
-		Header    map[string]string `json:"header"`
-		Asset     Asset             `json:"asset"`
-		Form      map[string]string `json:"form"`
+		UploadUrl string             `json:"upload_url"`
+		Header    *map[string]string `json:"header,omitempty"`
+		Asset     *Asset             `json:"asset,omitempty"`
+		Form      *map[string]string `json:"form,omitempty"`
 	}
 	AssetsResponse struct {
 		Data    *AssetsResponseData `json:"data,omitempty"`
@@ -117,13 +117,13 @@ func (s *Server) VideoAssetsHandler(c echo.Context) error {
 		s.log.Error(ErrFailedToCreateVideoRecord, "err", err)
 		return c.JSON(http.StatusInternalServerError, AssetsResponse{Error: ErrFailedToCreateVideoRecord})
 	}
-	presignedUrl, err := s.storage.PresignedClient().PresignPostObject(c.Request().Context(), &s3.PutObjectInput{
+	presignedUrl, err := s.storage.PresignedClient().PresignPutObject(c.Request().Context(), &s3.PutObjectInput{
 		Bucket:        aws.String(s.cfg.S3.RawMediaBucket),
 		Key:           aws.String(key),
 		ContentType:   aws.String(body.ContentType),
 		ContentLength: aws.Int64(int64(body.Size)),
 		Metadata:      map[string]string{},
-	}, func(options *s3.PresignPostOptions) {
+	}, func(options *s3.PresignOptions) {
 		options.Expires = time.Duration(POST_PRESIGNED_URL_TTL) * time.Second
 	})
 	if err != nil {
@@ -133,8 +133,8 @@ func (s *Server) VideoAssetsHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, AssetsResponse{
 		Data: &AssetsResponseData{
 			UploadUrl: presignedUrl.URL,
-			Header:    map[string]string{},
-			Asset: Asset{
+			Header:    &map[string]string{},
+			Asset: &Asset{
 				Id:           videoId,
 				Name:         body.Name,
 				Size:         int(body.Size),
@@ -142,7 +142,7 @@ func (s *Server) VideoAssetsHandler(c echo.Context) error {
 				Href:         "",
 				OriginalName: body.Name,
 			},
-			Form: presignedUrl.Values,
+			Form: nil,
 		},
 		Message: MsgPresignedURLGenerated,
 	})

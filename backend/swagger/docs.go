@@ -567,15 +567,19 @@ const docTemplate = `{
                 "PREUPLOAD",
                 "UPLOADED",
                 "PROCESSING",
+                "FAILED",
                 "READY",
-                "FAILED"
+                "PRIVATE",
+                "PUBLIC"
             ],
             "x-enum-varnames": [
                 "VideoStatusPREUPLOAD",
                 "VideoStatusUPLOADED",
                 "VideoStatusPROCESSING",
+                "VideoStatusFAILED",
                 "VideoStatusREADY",
-                "VideoStatusFAILED"
+                "VideoStatusPRIVATE",
+                "VideoStatusPUBLIC"
             ]
         },
         "pgtype.InfinityModifier": {

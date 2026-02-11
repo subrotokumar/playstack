@@ -11,7 +11,12 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"gitlab.com/subrotokumar/playstack/libs/db"
 	"gitlab.com/subrotokumar/playstack/transcoder/ffmpeg"
+)
+
+const (
+	MsgVideoMetadataUpdateFailed string = "failed to update video metadata"
 )
 
 func (s *Service) Download(ctx context.Context, destPath string) error {
@@ -64,10 +69,7 @@ func (s *Service) Transcode(ctx context.Context, inputPath, outputDir string) er
 
 func (s *Service) Upload(ctx context.Context, sourceDir string) error {
 	s.log.Info("Uploading files from", "dir", sourceDir)
-	keys := strings.Split(s.cfg.Key(), "/")
-	userId := keys[0]
-	videoId := keys[1]
-	uploadKey := userId + "/" + videoId + "/" + "output/"
+	uploadKey := strings.ReplaceAll(s.cfg.Key(), "video.mp4", "output/")
 	err := filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -89,7 +91,7 @@ func (s *Service) Upload(ctx context.Context, sourceDir string) error {
 
 		s.log.Info("Uploading", "key", uploadKey+relPath)
 		_, err = s.storage.Client().PutObject(ctx, &s3.PutObjectInput{
-			Bucket: aws.String(s.cfg.Bucket()),
+			Bucket: aws.String(s.cfg.Aws.MediaBucket),
 			Key:    aws.String(uploadKey + relPath),
 			Body:   file,
 		})
@@ -107,6 +109,10 @@ func (s *Service) Upload(ctx context.Context, sourceDir string) error {
 }
 
 func (s *Service) Process(ctx context.Context) error {
+	if err := s.UpdateMetadata(ctx, UpdateMetadataRequest{Status: db.VideoStatusUPLOADED}); err != nil {
+		s.log.Error(MsgVideoMetadataUpdateFailed, "err", err.Error())
+	}
+
 	workDir := "./tmp/workspace"
 	if err := os.MkdirAll(workDir, 0o755); err != nil {
 		return fmt.Errorf("create work dir: %w", err)
@@ -131,15 +137,22 @@ func (s *Service) Process(ctx context.Context) error {
 		return fmt.Errorf("download video: %w", err)
 	}
 
+	if err := s.UpdateMetadata(ctx, UpdateMetadataRequest{Status: db.VideoStatusPROCESSING}); err != nil {
+		s.log.Error(MsgVideoMetadataUpdateFailed, "err", err.Error())
+	}
+
 	if err := s.Transcode(ctx, inputPath, outputPath); err != nil {
+		s.UpdateMetadata(ctx, UpdateMetadataRequest{Status: db.VideoStatusFAILED})
 		return fmt.Errorf("transcode video: %w", err)
 	}
 
 	if err := s.Upload(ctx, outputPath); err != nil {
+		s.UpdateMetadata(ctx, UpdateMetadataRequest{Status: db.VideoStatusFAILED})
 		return fmt.Errorf("upload files: %w", err)
 	}
-	if err := s.UpdateMetadata(ctx); err != nil {
-		return fmt.Errorf("update video: %w", err)
+	if err := s.UpdateMetadata(ctx, UpdateMetadataRequest{Status: db.VideoStatusREADY}); err != nil {
+		s.log.Error(MsgVideoMetadataUpdateFailed, "err", err.Error())
+		return err
 	}
 	return nil
 }

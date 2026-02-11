@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"strings"
 
 	"gitlab.com/subrotokumar/playstack/libs/core"
 	"gitlab.com/subrotokumar/playstack/libs/storage"
@@ -21,6 +22,11 @@ type Config struct {
 		SecretAccessKey string `yaml:"secret_key" envconfig:"AWS_SECRET_ACCESS_KEY"`
 		MediaBucket     string `yaml:"media_bucket" envconfig:"MEDIA_BUCKET" required:"true"`
 	} `yaml:"aws"`
+	NotifierService struct {
+		URL      string `yaml:"api" envconfig:"NOTIFIER_SERVICE_ENDPOINT" default:"http://localhost:8080"`
+		Username string `yaml:"username" envconfig:"BASIC_AUTH_USERNAME"`
+		PASSWORD string `yaml:"password" envconfig:"BASIC_AUTH_PASSWORD"`
+	} `yaml:"notifier_service"`
 	Event   string `yaml:"events" envconfig:"SQS_MESSAGE" required:"true"`
 	S3Event storage.S3Event
 }
@@ -36,6 +42,11 @@ func (cfg *Config) Bucket() string {
 
 func (cfg *Config) Key() string {
 	return cfg.S3Event.Records[0].S3.Object.Key
+}
+
+func (cfg *Config) UserAndVideoID() (string, string) {
+	keys := strings.Split(cfg.Key(), "/")
+	return keys[1], keys[2]
 }
 
 func (cfg *Config) ObjectSize() int64 {

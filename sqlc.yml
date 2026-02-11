@@ -6,8 +6,8 @@ sql:
   - schema: "migration"
     queries: "libs/db/queries"
     engine: "postgresql"
-    database:
-      managed: true
+    # database:
+    #   managed: true
     gen:
       go:
         package: "db"
