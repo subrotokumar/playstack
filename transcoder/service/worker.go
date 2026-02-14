@@ -91,9 +91,10 @@ func (s *Service) Upload(ctx context.Context, sourceDir string) error {
 
 		s.log.Info("Uploading", "key", uploadKey+relPath)
 		_, err = s.storage.Client().PutObject(ctx, &s3.PutObjectInput{
-			Bucket: aws.String(s.cfg.Aws.MediaBucket),
-			Key:    aws.String(uploadKey + relPath),
-			Body:   file,
+			Bucket:      aws.String(s.cfg.Aws.MediaBucket),
+			Key:         aws.String(uploadKey + relPath),
+			Body:        file,
+			ContentType: aws.String(getContentType(relPath)),
 		})
 		if err != nil {
 			return fmt.Errorf("upload file %s: %w", relPath, err)
