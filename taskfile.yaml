@@ -86,71 +86,6 @@ tasks:
       - sops -d -i .env
       - sops -d -i example.env
 
-  tf:plan:
-    silent: true
-    desc: "Generate Terraform/OpenTofu plan for the environment"
-    dir: terraform/environments
-    cmds: [tofu plan]
-
-  tf:apply:
-    silent: true
-    var:
-      approve: false
-    dir: terraform/environments
-    desc: "Apply Terraform/OpenTofu plan to the environment"
-    cmds: 
-      - tofu apply
-  
-  tf:apply:auto:
-    silent: true
-    dir: terraform/environments
-    desc: "Apply Terraform/OpenTofu plan (auto approve)"
-    cmds:
-      - tofu apply --auto-approve
-  
-  tf:unlock:
-    silent: true
-    dir: terraform/environments
-    var:
-      ID: 
-    desc: "Apply Terraform/OpenTofu plan (auto approve)"
-    cmds:
-      - tofu force-unlock {{.ID}}
-
-  tf:destroy:
-    silent: true
-    dir: terraform/environments
-    desc: "Destroy Terraform/OpenTofu managed infrastructure"
-    cmds: [tofu destroy]
-
-  tf:validate:
-    silent: true
-    dir: terraform/environments
-    desc: "Validate Terraform/OpenTofu configuration"
-    cmds: [tofu validate]
-
-  tf:output:
-    silent: true
-    dir: terraform/environments
-    desc: "Initialize Terraform/OpenTofu with remote backend"
-    cmds: [tofu output]
-  
-  tf:init:
-    silent: true
-    dir: terraform/environments
-    desc: "Initialize Terraform/OpenTofu with remote backend"
-    cmds: 
-    - |
-      tofu init \
-      -backend-config="address=https://gitlab.com/api/v4/projects/$GITLAB_PROJECT_ID/terraform/state/$TF_STATE_NAME" \
-      -backend-config="lock_address=https://gitlab.com/api/v4/projects/$GITLAB_PROJECT_ID/terraform/state/$TF_STATE_NAME/lock" \
-      -backend-config="unlock_address=https://gitlab.com/api/v4/projects/$GITLAB_PROJECT_ID/terraform/state/$TF_STATE_NAME/lock" \
-      -backend-config="username=$GITLAB_USERNAME" \
-      -backend-config="password=$GITLAB_ACCESS_TOKEN" \
-      -backend-config="lock_method=POST" \
-      -backend-config="unlock_method=DELETE" \
-      -backend-config="retry_wait_min=5"
-        
   swagger:init:
     desc: Generate Swagger documation of Gen Service
     cmds:
@@ -161,15 +96,6 @@ tasks:
         --dir ./backend/server \
         -g ../main.go \
         -o ./backend/swagger
-
-  work:sync:
-    cmds: 
-      - cd libs/core && go mod tidy
-      - cd libs/idp && go mod tidy
-      - cd libs/queue && go mod tidy
-      - cd libs/storage && go mod tidy
-      - cd backend && go mod tidy
-      - cd consumer && go mod tidy
 
   sonar:
     var:
@@ -195,12 +121,14 @@ tasks:
         -Dsonar.links.scm=${CI_REPOSITORY_URL} \
         -Dsonar.branch.name=${CI_COMMIT_REF_NAME}
   
-  helm:template:
-    silent: true
-    dir: k8s
-    cmds: [helm template playstack ./helm] 
-  
   gcl:
     silent: true
     cmds:
-      - gitlab-ci-local --list | fzf | awk '{print $1}' | xargs gitlab-ci-local 
+      - |
+        gitlab-ci-local --list | fzf | awk '{print $1}' | xargs gitlab-ci-local \
+          --variable SONAR_TOKEN=$SONAR_TOKEN \
+          --variable AWS_DEFAULT_REGION=$AWS_REGION \ 
+          --variable AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \ 
+          --variable AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \ 
+          --variable AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID \
+          --variable IMAGE_REGISTRY=$IMAGE_REGISTRY
