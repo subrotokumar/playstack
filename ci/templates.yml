@@ -1,12 +1,5 @@
-# Reusable templates and YAML anchors.
-# All jobs in ci/ reference these via <<: *anchor_name
-
-.go_cache:
-  cache:
-    - key: go-modules-$CI_COMMIT_REF_SLUG-${CI_JOB_NAME}
-      paths:
-        - .cache/go-build/
-      when: always
+# Reusable templates.
+# All jobs in ci/ reference these via extends:
 
 .go_template:
   image: golang:${GO_VERSION}
@@ -21,16 +14,25 @@
       when: always
 
 .build_ecr_login:
+  image: docker:27-cli
+  services:
+    - docker:27-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_VERIFY: "1"
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_CERT_PATH: "/certs/client"
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://sts.amazonaws.com
   before_script:
-    - unset DOCKER_HOST DOCKER_TLS_CERTDIR
-    - |
-      docker run --rm \
-        -e AWS_ACCESS_KEY_ID \
-        -e AWS_SECRET_ACCESS_KEY \
-        -e AWS_DEFAULT_REGION \
-        public.ecr.aws/aws-cli/aws-cli \
-        ecr get-login-password --region $AWS_DEFAULT_REGION \
-      | docker login --username AWS --password-stdin ${IMAGE_REGISTRY}
+    - apk add --no-cache aws-cli
+    - STS_OUTPUT=$(aws sts assume-role-with-web-identity --role-arn ${AWS_ROLE_ARN} --role-session-name gitlab-ci-${CI_JOB_ID} --web-identity-token ${GITLAB_OIDC_TOKEN} --query "Credentials.[AccessKeyId,SecretAccessKey,SessionToken]" --output text)
+    - export AWS_ACCESS_KEY_ID=$(echo $STS_OUTPUT | awk '{print $1}')
+    - export AWS_SECRET_ACCESS_KEY=$(echo $STS_OUTPUT | awk '{print $2}')
+    - export AWS_SESSION_TOKEN=$(echo $STS_OUTPUT | awk '{print $3}')
+    - unset STS_OUTPUT
+    - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin ${IMAGE_REGISTRY}
 
 .argocd_login:
   image: argoproj/argocd:v${ARGOCD_VERSION}
@@ -43,12 +45,10 @@
 .gitops_setup:
   image: alpine:latest
   before_script:
-    - apk add --no-cache git openssh-client yq
-    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
-    - echo "$GITOPS_SSH_PRIVATE_KEY" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+    - apk add --no-cache git yq
     - git config --global user.email "${GITLAB_USER_EMAIL}"
     - git config --global user.name "${GITLAB_USER_NAME}"
+    - git config --global url."https://oauth2:${GITOPS_ACCESS_TOKEN}@gitlab.com".insteadOf "https://gitlab.com"
 
 # ---- Shared rule sets ----
 

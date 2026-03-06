@@ -2,7 +2,7 @@
 FROM golang:1.25.6-alpine AS builder
 
 WORKDIR /app
-RUN apk add --no-cache ca-certificates # git
+# RUN apk add --no-cache ca-certificates # git
 
 COPY go.mod go.sum ./
 COPY ./backend/ ./backend/

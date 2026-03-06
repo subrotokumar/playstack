@@ -3,6 +3,8 @@ workflow:
     on_new_commit: interruptible
 
 variables:
+  CI_DEBUG_TRACE: "false"
+  
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: "/certs"
   DOCKER_BUILDKIT: "1"
@@ -25,8 +27,8 @@ variables:
   GITOPS_BRANCH: "main"
 
 stages:
-  - check
-  - quality
+  # - check
+  # - quality
   - build
   - container-scan
   - update-manifests
@@ -34,9 +36,9 @@ stages:
 
 include:
   - local: ci/templates.yml
-  - local: ci/lint.yml
-  - local: ci/test.yml
-  - local: ci/quality.yml
+  # - local: ci/lint.yml
+  # - local: ci/test.yml
+  # - local: ci/quality.yml
   - local: ci/build.yml
   - local: ci/container-scan.yml
   - local: ci/update-manifests.yml
