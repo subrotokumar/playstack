@@ -1,0 +1,32 @@
+.trivy_scan:
+  stage: container-scan
+  image: aquasec/trivy:${TRIVY_VERSION}
+  script:
+    - trivy image --exit-code 0 --no-progress --format json -o ${REPORT_FILE} ${IMAGE}
+    - trivy image --exit-code 1 --severity CRITICAL --no-progress ${IMAGE}
+  artifacts:
+    reports:
+      container_scanning: ${REPORT_FILE}
+    paths:
+      - ${REPORT_FILE}
+    expire_in: 30 days
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_COMMIT_TAG'
+
+container_scanning:backend:
+  extends: .trivy_scan
+  needs:
+    - build:backend
+  variables:
+    IMAGE: ${BACKEND_IMAGE}:${CI_COMMIT_SHORT_SHA}
+    REPORT_FILE: gl-container-scanning-backend.json
+
+container_scanning:transcoder:
+  extends: .trivy_scan
+  needs:
+    - build:transcoder
+  variables:
+    IMAGE: ${TRANSCODER_IMAGE}:${CI_COMMIT_SHORT_SHA}
+    REPORT_FILE: gl-container-scanning-transcoder.json

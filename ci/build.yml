@@ -1,0 +1,50 @@
+.build_image:
+  extends: .build_ecr_login
+  stage: build
+  script:
+    - |
+      export IMAGE_VERSIONED=${TARGET_IMAGE}:${CI_COMMIT_SHORT_SHA}
+
+      docker build \
+        --file ${DOCKERFILE} \
+        --tag ${IMAGE_VERSIONED} \
+        --build-arg VERSION=${CI_COMMIT_TAG:-$CI_COMMIT_SHORT_SHA} \
+        --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+        --build-arg VCS_REF=${CI_COMMIT_SHA} \
+        --cache-from ${TARGET_IMAGE}:latest \
+        .
+
+      docker push ${IMAGE_VERSIONED}
+
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        docker tag ${IMAGE_VERSIONED} ${TARGET_IMAGE}:${CI_COMMIT_TAG}
+        docker push ${TARGET_IMAGE}:${CI_COMMIT_TAG}
+        docker tag ${IMAGE_VERSIONED} ${TARGET_IMAGE}:latest
+        docker push ${TARGET_IMAGE}:latest
+      fi
+
+      if [ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ]; then
+        docker tag ${IMAGE_VERSIONED} ${TARGET_IMAGE}:staging
+        docker push ${TARGET_IMAGE}:staging
+      fi
+
+      if [ "$CI_COMMIT_BRANCH" = "develop" ]; then
+        docker tag ${IMAGE_VERSIONED} ${TARGET_IMAGE}:dev
+        docker push ${TARGET_IMAGE}:dev
+      fi
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_COMMIT_TAG'
+
+build:backend:
+  extends: .build_image
+  variables:
+    TARGET_IMAGE: ${BACKEND_IMAGE}
+    DOCKERFILE: docker/backend.dockerfile
+
+build:transcoder:
+  extends: .build_image
+  variables:
+    TARGET_IMAGE: ${TRANSCODER_IMAGE}
+    DOCKERFILE: docker/transcoder.dockerfile

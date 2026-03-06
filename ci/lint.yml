@@ -1,0 +1,28 @@
+lint:golang:
+  stage: check
+  image: golangci/golangci-lint:${GOLANGCI_LINT_VERSION}
+  cache:
+    - key: golangci-lint-$CI_COMMIT_REF_SLUG
+      paths:
+        - .golangci-lint-cache/
+      when: always
+  variables:
+    GOLANGCI_LINT_CACHE: $CI_PROJECT_DIR/.golangci-lint-cache
+  script:
+    - golangci-lint run --timeout 5m
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+lint:dockerfile:
+  stage: check
+  image: hadolint/hadolint:latest-alpine
+  script:
+    - hadolint docker/backend.dockerfile
+    - hadolint docker/transcoder.dockerfile
+  allow_failure: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - docker/**/*
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'

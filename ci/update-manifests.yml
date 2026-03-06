@@ -1,0 +1,58 @@
+.update_manifests:
+  extends: .gitops_setup
+  stage: update-manifests
+  needs:
+    - container_scanning:backend
+    - container_scanning:transcoder
+  script:
+    - |
+      git clone ${GITOPS_REPO} gitops
+      cd gitops
+      git checkout ${GITOPS_BRANCH}
+
+      for service in backend transcoder; do
+        IMAGE_VAR="${service^^}_IMAGE"
+        IMAGE_REF="${!IMAGE_VAR}:${IMAGE_TAG}"
+
+        yq eval ".spec.template.spec.containers[0].image = \"${IMAGE_REF}\"" \
+          -i environments/${ENVIRONMENT}/${service}/deployment.yaml
+
+        yq eval ".images[0].newTag = \"${IMAGE_TAG}\"" \
+          -i environments/${ENVIRONMENT}/${service}/kustomization.yaml
+      done
+
+      git add -A
+      if git diff --staged --quiet; then
+        echo "No changes to commit"
+      else
+        git commit -m "chore(${ENVIRONMENT}): update images to ${IMAGE_TAG}
+
+      Source: ${CI_PROJECT_URL}/-/commit/${CI_COMMIT_SHA}
+      Pipeline: ${CI_PIPELINE_URL}"
+        git push origin ${GITOPS_BRANCH}
+      fi
+
+update:manifests:dev:
+  extends: .update_manifests
+  variables:
+    ENVIRONMENT: dev
+    IMAGE_TAG: ${CI_COMMIT_SHORT_SHA}
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+update:manifests:staging:
+  extends: .update_manifests
+  variables:
+    ENVIRONMENT: staging
+    IMAGE_TAG: ${CI_COMMIT_SHORT_SHA}
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+update:manifests:production:
+  extends: .update_manifests
+  variables:
+    ENVIRONMENT: production
+    IMAGE_TAG: ${CI_COMMIT_TAG}
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+      when: manual

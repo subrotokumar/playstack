@@ -1,0 +1,68 @@
+# Reusable templates and YAML anchors.
+# All jobs in ci/ reference these via <<: *anchor_name
+
+.go_cache:
+  cache:
+    - key: go-modules-$CI_COMMIT_REF_SLUG-${CI_JOB_NAME}
+      paths:
+        - .cache/go-build/
+      when: always
+
+.go_template:
+  image: golang:${GO_VERSION}
+  before_script:
+    - mkdir -p .cache/go-build
+    - export GOCACHE=$CI_PROJECT_DIR/.cache/go-build
+    - go mod download
+  cache:
+    - key: go-modules-$CI_COMMIT_REF_SLUG-${CI_JOB_NAME}
+      paths:
+        - .cache/go-build/
+      when: always
+
+.build_ecr_login:
+  before_script:
+    - unset DOCKER_HOST DOCKER_TLS_CERTDIR
+    - |
+      docker run --rm \
+        -e AWS_ACCESS_KEY_ID \
+        -e AWS_SECRET_ACCESS_KEY \
+        -e AWS_DEFAULT_REGION \
+        public.ecr.aws/aws-cli/aws-cli \
+        ecr get-login-password --region $AWS_DEFAULT_REGION \
+      | docker login --username AWS --password-stdin ${IMAGE_REGISTRY}
+
+.argocd_login:
+  image: argoproj/argocd:v${ARGOCD_VERSION}
+  before_script:
+    - argocd login ${ARGOCD_SERVER}
+        --username ${ARGOCD_USERNAME}
+        --password ${ARGOCD_PASSWORD}
+        --grpc-web
+
+.gitops_setup:
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache git openssh-client yq
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    - echo "$GITOPS_SSH_PRIVATE_KEY" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+    - git config --global user.email "${GITLAB_USER_EMAIL}"
+    - git config --global user.name "${GITLAB_USER_NAME}"
+
+# ---- Shared rule sets ----
+
+.rules_mr_and_default:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+.rules_deployable_branches:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_COMMIT_TAG'
+
+.rules_semver_tag:
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
