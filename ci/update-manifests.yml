@@ -12,13 +12,13 @@
 
       for service in backend transcoder; do
         IMAGE_VAR="${service^^}_IMAGE"
-        IMAGE_REF="${!IMAGE_VAR}:${IMAGE_TAG}"
+        IMAGE_REF="${!IMAGE_VAR}"
 
-        yq eval ".spec.template.spec.containers[0].image = \"${IMAGE_REF}\"" \
-          -i environments/${ENVIRONMENT}/${service}/deployment.yaml
+        yq eval ".${service}.image.repository = \"${IMAGE_REF}\"" \
+          -i environments/${ENVIRONMENT}/${service}/helm/values.yaml
 
-        yq eval ".images[0].newTag = \"${IMAGE_TAG}\"" \
-          -i environments/${ENVIRONMENT}/${service}/kustomization.yaml
+        yq eval ".${service}.image.tag = \"${IMAGE_TAG}\"" \
+          -i environments/${ENVIRONMENT}/${service}/helm/values.yaml
       done
 
       git add -A
@@ -38,7 +38,7 @@ update:manifests:dev:
     ENVIRONMENT: dev
     IMAGE_TAG: ${CI_COMMIT_SHORT_SHA}
   rules:
-    - if: '$CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_COMMIT_BRANCH == "dev"'
 
 update:manifests:staging:
   extends: .update_manifests
