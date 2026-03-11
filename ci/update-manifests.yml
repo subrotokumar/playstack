@@ -1,6 +1,5 @@
 .update_manifests:
   extends: .gitops_setup
-  stage: update-manifests
   needs:
     - container_scanning:backend
     - container_scanning:transcoder
@@ -10,10 +9,7 @@
       cd gitops
       git checkout ${GITOPS_BRANCH}
 
-      IMAGE_TAG=${CI_COMMIT_SHORT_SHA}
-      if [ -n "$CI_COMMIT_TAG" ]; then
-        IMAGE_TAG=${CI_COMMIT_TAG}
-      fi
+      IMAGE_TAG=${CI_COMMIT_TAG:-$CI_COMMIT_SHORT_SHA}
          
       yq eval ".appVersion = \"${IMAGE_TAG}\"" \
         -i ${VALUES_FILE}
@@ -31,14 +27,16 @@
 
 update:manifests:dev:
   extends: .update_manifests
+  stage: update-manifests-dev
   variables:
     ENVIRONMENT: dev
     VALUES_FILE: helm/values.dev.yaml
   rules:
     - if: '$CI_COMMIT_BRANCH == "dev"'
 
-update:manifests:staging:
+update:manifests:stage:
   extends: .update_manifests
+  stage: update-manifests-stage
   variables:
     ENVIRONMENT: stage
     VALUES_FILE: helm/values.stage.yaml
@@ -49,8 +47,9 @@ update:manifests:staging:
       when: on_success
     - when: never
 
-update:manifests:production:
+update:manifests:prod:
   extends: .update_manifests
+  stage: update-manifests-prod
   variables:
     ENVIRONMENT: prod
     VALUES_FILE: helm/values.prod.yaml
