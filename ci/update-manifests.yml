@@ -10,22 +10,19 @@
       cd gitops
       git checkout ${GITOPS_BRANCH}
 
-      for service in backend transcoder; do
-        IMAGE_VAR="${service^^}_IMAGE"
-        IMAGE_REF="${!IMAGE_VAR}"
-
-        yq eval ".${service}.image.repository = \"${IMAGE_REF}\"" \
-          -i environments/${ENVIRONMENT}/${service}/helm/values.yaml
-
-        yq eval ".${service}.image.tag = \"${IMAGE_TAG}\"" \
-          -i environments/${ENVIRONMENT}/${service}/helm/values.yaml
-      done
+      IMAGE_TAG=${CI_COMMIT_SHORT_SHA}
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        IMAGE_TAG=${CI_COMMIT_TAG}
+      fi
+         
+      yq eval ".appVersion = \"${IMAGE_TAG}\"" \
+        -i ${VALUES_FILE}
 
       git add -A
       if git diff --staged --quiet; then
         echo "No changes to commit"
       else
-        git commit -m "chore(${ENVIRONMENT}): update images to ${IMAGE_TAG}
+        git commit -m "chore(${ENVIRONMENT}): update appVersion to ${IMAGE_TAG}
 
       Source: ${CI_PROJECT_URL}/-/commit/${CI_COMMIT_SHA}
       Pipeline: ${CI_PIPELINE_URL}"
@@ -36,23 +33,30 @@ update:manifests:dev:
   extends: .update_manifests
   variables:
     ENVIRONMENT: dev
-    IMAGE_TAG: ${CI_COMMIT_SHORT_SHA}
+    VALUES_FILE: helm/values.dev.yaml
   rules:
     - if: '$CI_COMMIT_BRANCH == "dev"'
 
 update:manifests:staging:
   extends: .update_manifests
   variables:
-    ENVIRONMENT: staging
-    IMAGE_TAG: ${CI_COMMIT_SHORT_SHA}
+    ENVIRONMENT: stage
+    VALUES_FILE: helm/values.stage.yaml
   rules:
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" &&
+           $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "dev" &&
+           $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+      when: on_success
+    - when: never
 
 update:manifests:production:
   extends: .update_manifests
   variables:
-    ENVIRONMENT: production
-    IMAGE_TAG: ${CI_COMMIT_TAG}
+    ENVIRONMENT: prod
+    VALUES_FILE: helm/values.prod.yaml
   rules:
-    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" &&
+           $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "dev" &&
+           $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
       when: manual
+    - when: never

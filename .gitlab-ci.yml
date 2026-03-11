@@ -3,6 +3,18 @@ workflow:
     on_new_commit: interruptible
 
 variables:
+  ## CI Veriables
+  IMAGE_REGISTRY: $IMAGE_REGISTRY
+  GITOPS_REPO: $GITOPS_REPO
+  GITOPS_BRANCH: $GITOPS_BRANCH
+  GITLAB_OIDC_TOKEN: $GITLAB_OIDC_TOKEN
+  GITLAB_USER_NAME: $GITLAB_USER_NAME
+  GITLAB_USER_EMAIL: $GITLAB_USER_EMAIL
+  GITOPS_ACCESS_TOKEN: $GITOPS_ACCESS_TOKEN
+  AWS_ROLE_ARN: $AWS_ROLE_ARN
+  AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
+  SONAR_TOKEN: $SONAR_TOKEN
+
   CI_DEBUG_TRACE: "false"
   
   DOCKER_DRIVER: overlay2
@@ -20,11 +32,6 @@ variables:
   SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
   GIT_DEPTH: "0"
 
-  ARGOCD_SERVER: "argocd.example.com"
-  ARGOCD_VERSION: "2.9.3"
-
-  GITOPS_REPO: "git@gitlab.com:subrotokumar/playstack.git"
-  GITOPS_BRANCH: "main"
 
 stages:
   # - check
@@ -32,7 +39,7 @@ stages:
   - build
   - container-scan
   - update-manifests
-  - sync
+  # # - sync
 
 include:
   - local: ci/templates.yml
@@ -42,4 +49,4 @@ include:
   - local: ci/build.yml
   - local: ci/container-scan.yml
   - local: ci/update-manifests.yml
-  - local: ci/sync.yml
+  # # - local: ci/sync.yml
