@@ -1,6 +1,5 @@
 .build_image:
   extends: .build_ecr_login
-  stage: build
   script:
     - |
       export IMAGE_VERSIONED=${TARGET_IMAGE}:${CI_COMMIT_SHORT_SHA}
@@ -30,6 +29,7 @@
 
 .rules_backend_changes: &backend_changes
   changes:
+    - ./**
     - backend/**
     - libs/**
 
@@ -39,28 +39,30 @@
     - libs/**
 
 build:backend:
+  stage: build
   extends: .build_image
   variables:
     TARGET_IMAGE: ${BACKEND_IMAGE}
     DOCKERFILE: docker/backend.dockerfile
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-      <<: *backend_changes
+      # <<: *backend_changes
     - if: '$CI_COMMIT_BRANCH == "dev"'
-      <<: *backend_changes
+      # <<: *backend_changes
     - if: '$CI_COMMIT_TAG'
-      <<: *backend_changes
+      # <<: *backend_changes
 
 
 build:transcoder:
+  stage: build
   extends: .build_image
   variables:
     TARGET_IMAGE: ${TRANSCODER_IMAGE}
     DOCKERFILE: docker/transcoder.dockerfile
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-      <<: *transcoder_changes
+      # <<: *transcoder_changes
     - if: '$CI_COMMIT_BRANCH == "dev"'
-      <<: *transcoder_changes
+      # <<: *transcoder_changes
     - if: '$CI_COMMIT_TAG'
-      <<: *transcoder_changes
+      # <<: *transcoder_changes

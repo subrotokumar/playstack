@@ -1,6 +1,8 @@
 .trivy_scan:
   stage: container-scan
-  image: aquasec/trivy:${TRIVY_VERSION}
+  image: 
+    name: aquasec/trivy:${TRIVY_VERSION}
+    entrypoint: [""]
   script:
     - trivy image --exit-code 0 --no-progress --format json -o ${REPORT_FILE} ${IMAGE}
     - trivy image --exit-code 1 --severity CRITICAL --no-progress ${IMAGE}
@@ -18,7 +20,8 @@
 container_scanning:backend:
   extends: .trivy_scan
   needs:
-    - build:backend
+    - job: build:backend
+
   variables:
     IMAGE: ${BACKEND_IMAGE}:${CI_COMMIT_SHORT_SHA}
     REPORT_FILE: gl-container-scanning-backend.json
@@ -26,7 +29,7 @@ container_scanning:backend:
 container_scanning:transcoder:
   extends: .trivy_scan
   needs:
-    - build:transcoder
+    - job: build:transcoder
   variables:
     IMAGE: ${TRANSCODER_IMAGE}:${CI_COMMIT_SHORT_SHA}
     REPORT_FILE: gl-container-scanning-transcoder.json

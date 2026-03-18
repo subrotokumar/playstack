@@ -8,6 +8,7 @@ COPY go.mod go.sum ./
 COPY ./transcoder ./transcoder/
 COPY ./libs/core/ ./libs/core/
 COPY ./libs/storage/ ./libs/storage/
+COPY ./libs/db/ ./libs/db/
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -o transcoder ./transcoder/main.go

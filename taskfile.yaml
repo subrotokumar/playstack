@@ -124,11 +124,24 @@ tasks:
   gcl:
     silent: true
     cmds:
+      # - |
+      #   gitlab-ci-local --list | fzf | awk '{print $1}' | xargs gitlab-ci-local \
+      #     --variable SONAR_TOKEN=$SONAR_TOKEN \
+      #     --variable AWS_DEFAULT_REGION=$AWS_REGION \ 
+      #     --variable AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \ 
+      #     --variable AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \ 
+      #     --variable AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID \
+      #     --variable IMAGE_REGISTRY=$IMAGE_REGISTRY
       - |
-        gitlab-ci-local --list | fzf | awk '{print $1}' | xargs gitlab-ci-local \
+        gitlab-ci-local \
+          --ignore-predefined-vars
           --variable SONAR_TOKEN=$SONAR_TOKEN \
           --variable AWS_DEFAULT_REGION=$AWS_REGION \ 
           --variable AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \ 
           --variable AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \ 
           --variable AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID \
           --variable IMAGE_REGISTRY=$IMAGE_REGISTRY
+          --variable GITLAB_USER_NAME=subrotokumar
+          --variable GITLAB_USER_EMAIL=subrotokumar@outlook.in
+
+

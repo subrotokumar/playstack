@@ -27,12 +27,13 @@
       aud: https://sts.amazonaws.com
   before_script:
     - apk add --no-cache aws-cli
-    - STS_OUTPUT=$(aws sts assume-role-with-web-identity --role-arn ${AWS_ROLE_ARN} --role-session-name gitlab-ci-${CI_JOB_ID} --web-identity-token ${GITLAB_OIDC_TOKEN} --query "Credentials.[AccessKeyId,SecretAccessKey,SessionToken]" --output text)
+    - export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-ap-south-1}"
+    - STS_OUTPUT=$(aws sts assume-role-with-web-identity --region "$AWS_DEFAULT_REGION" --role-arn "${AWS_ROLE_ARN}" --role-session-name gitlab-ci-${CI_JOB_ID} --web-identity-token "${GITLAB_OIDC_TOKEN}" --query "Credentials.[AccessKeyId,SecretAccessKey,SessionToken]" --output text)
     - export AWS_ACCESS_KEY_ID=$(echo $STS_OUTPUT | awk '{print $1}')
     - export AWS_SECRET_ACCESS_KEY=$(echo $STS_OUTPUT | awk '{print $2}')
     - export AWS_SESSION_TOKEN=$(echo $STS_OUTPUT | awk '{print $3}')
     - unset STS_OUTPUT
-    - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin ${IMAGE_REGISTRY}
+    - aws ecr get-login-password --region "$AWS_DEFAULT_REGION" | docker login --username AWS --password-stdin ${IMAGE_REGISTRY}
 
 .gitops_setup:
   image: alpine:latest
