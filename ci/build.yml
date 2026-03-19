@@ -12,6 +12,19 @@
         --build-arg VCS_REF=${CI_COMMIT_SHA} \
         --cache-from ${TARGET_IMAGE}:latest \
         .
+      
+      # Scan local image before pushing anywhere
+      docker run --rm \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        -v ${CI_PROJECT_DIR}/.trivy-cache:/root/.cache/trivy \
+        aquasec/trivy:${TRIVY_VERSION} image \
+          --exit-code 0 --no-progress --format json -o ${REPORT_FILE} ${IMAGE_VERSIONED}
+
+      docker run --rm \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        -v ${CI_PROJECT_DIR}/.trivy-cache:/root/.cache/trivy \
+        aquasec/trivy:${TRIVY_VERSION} image \
+          --exit-code 1 --severity CRITICAL --no-progress ${IMAGE_VERSIONED}
 
       docker push ${IMAGE_VERSIONED}
 
@@ -53,16 +66,16 @@ build:backend:
       # <<: *backend_changes
 
 
-build:transcoder:
-  stage: build
-  extends: .build_image
-  variables:
-    TARGET_IMAGE: ${TRANSCODER_IMAGE}
-    DOCKERFILE: docker/transcoder.dockerfile
-  rules:
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-      # <<: *transcoder_changes
-    - if: '$CI_COMMIT_BRANCH == "dev"'
-      # <<: *transcoder_changes
-    - if: '$CI_COMMIT_TAG'
-      # <<: *transcoder_changes
+# build:transcoder:
+#   stage: build
+#   extends: .build_image
+#   variables:
+#     TARGET_IMAGE: ${TRANSCODER_IMAGE}
+#     DOCKERFILE: docker/transcoder.dockerfile
+#   rules:
+#     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+#       # <<: *transcoder_changes
+#     - if: '$CI_COMMIT_BRANCH == "dev"'
+#       # <<: *transcoder_changes
+#     - if: '$CI_COMMIT_TAG'
+#       # <<: *transcoder_changes

@@ -39,7 +39,7 @@ stages:
   # - check
   # - quality
   - build
-  - container-scan
+  # - container-scan
   - update-manifests-dev
   - update-manifests-stage
   - update-manifests-prod
@@ -50,5 +50,5 @@ include:
   # - local: ci/test.yml
   # - local: ci/quality.yml
   - local: ci/build.yml
-  - local: ci/container-scan.yml
+  # - local: ci/container-scan.yml
   - local: ci/update-manifests.yml
