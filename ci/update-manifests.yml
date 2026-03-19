@@ -5,6 +5,7 @@
     - container_scanning:transcoder
   script:
     - |
+      GITOPS_REPO="https://oauth2:${GITOPS_ACCESS_TOKEN}@gitlab.com/subrotokumar/playstack-ops.git"
       git clone ${GITOPS_REPO} gitops
       cd gitops
       git checkout ${GITOPS_BRANCH}
@@ -30,7 +31,7 @@ update:manifests:dev:
   stage: update-manifests-dev
   variables:
     ENVIRONMENT: dev
-    VALUES_FILE: helm/values.dev.yaml
+    VALUES_FILE: helm/values.yaml
   rules:
     - if: '$CI_COMMIT_BRANCH == "dev"'
 
