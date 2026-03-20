@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -52,7 +53,7 @@ func (s *Server) LivenessHandler(c echo.Context) error {
 //	@Success		200	{object}	HealthResponse	"Service is ready or not"
 //	@Router			/health/readiness [get]
 func (s *Server) ReadinessHandler(c echo.Context) error {
-	ctx, cancel := context.WithTimeout(c.Request().Context(), 500*time.Millisecond)
+	ctx, cancel := context.WithTimeout(c.Request().Context(), 10*time.Second)
 	defer cancel()
 
 	dbStatus := StatusDown
@@ -61,6 +62,8 @@ func (s *Server) ReadinessHandler(c echo.Context) error {
 	if _, err := s.store.GetTimestamp(ctx); err == nil {
 		dbStatus = StatusUp
 		httpStatus = http.StatusOK
+	} else {
+		fmt.Println(err.Error())
 	}
 	stat := s.store.Stat()
 
